@@ -389,5 +389,21 @@
         }
 
     </script>
+    <script>
+function sendScore(score) {
+  fetch("https://YOUR_SERVER_URL/score", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      user_id: Telegram.WebApp.initDataUnsafe.user.id,
+      score: score
+    })
+  });
+}
+
+// Game over par example:
+// sendScore(3500);
+</script>
 </body>
+
 </html>
