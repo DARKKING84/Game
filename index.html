@@ -1,596 +1,1244 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- Default lang to English, will be updated by JS if needed -->
 <head>
     <meta charset="UTF-8">
-    <!-- Make viewport responsive and prevent scaling -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Car Racing Game</title>
+    <title>Bubble Shooter Deluxe (Fullscreen)</title> <!-- Will be updated by JS -->
     <style>
-        body {
+        :root {
+            --bg-gradient-start: #4A5A6A;
+            --bg-gradient-end: #2C3E50;
+            --text-color: #ecf0f1;
+            --panel-bg: rgba(0,0,0,0.15);
+            --container-border: #5C6B73;
+            --container-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            --container-bg: #34495e;
+            --score-bg: rgba(0,0,0,0.25);
+            --score-text: #FFD700;
+            --button-text: white;
+            --button-shadow-color-red: #96281B;
+            --button-shadow-color-blue: #1A5276;
+            --button-shadow-color-green: #1E8449;
+            --button-shadow-color-grey: #616A6B;
+            --settings-panel-bg: rgba(30, 40, 50, 0.97);
+            --settings-content-bg: #2c3e50; /* Slightly lighter than panel bg */
+            --settings-text-color: #ecf0f1;
+            --input-bg: #34495e;
+            --input-border: #5C6B73;
+            --header-color: #e74c3c;
+            --link-color: #3498db;
+            --separator-color: #4A5A6A;
+        }
+
+        body.light-theme {
+            --bg-gradient-start: #e0eafc;
+            --bg-gradient-end: #cfdef3;
+            --text-color: #2c3e50;
+            --panel-bg: rgba(255,255,255,0.4);
+            --container-border: #a2b9bc;
+            --container-shadow: inset 0 0 8px rgba(0,0,0,0.15);
+            --container-bg: #f0f4f8;
+            --score-bg: rgba(0,0,0,0.08);
+            --score-text: #E67E22;
+            /* Button text can remain white for good contrast on colored buttons */
+            --settings-panel-bg: rgba(240, 244, 248, 0.98);
+            --settings-content-bg: #ffffff;
+            --settings-text-color: #2c3e50;
+            --input-bg: #e8f0fe;
+            --input-border: #bdc3c7;
+            --header-color: #d35400; /* Slightly different red for light theme */
+            --link-color: #2980b9;
+            --separator-color: #d0d9e0;
+        }
+
+        html, body {
+            height: 100%;
             margin: 0;
-            overflow: hidden; /* Prevent scrollbars */
-            background-color: #a0d7e6; /* Light sky blue background */
-            font-family: sans-serif; /* Added for UI text */
-            /* Prevent default touch behaviors like pull-to-refresh or selection */
-            overscroll-behavior: none;
-            touch-action: none; /* For pointer events, might help on some devices */
-            transition: background-color 0.5s ease; /* For potential future effects */
+            padding: 0;
+            background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        #game-wrapper {
+            padding: 10px;
+            background-color: var(--panel-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease;
+        }
+        #game-container {
+            position: relative;
+            border: 2px solid var(--container-border);
+            box-shadow: var(--container-shadow);
+            background-color: var(--container-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            touch-action: none;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         canvas {
-            display: block; /* Remove annoying space below canvas */
+            display: block;
+            touch-action: none;
         }
-        #loading-screen {
+        #ui-elements {
+            margin-top: 15px;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 95%;
+            max-width: 480px; /* Increased max-width for more buttons */
+        }
+        #score-container {
+            background-color: var(--score-bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            flex-grow: 1;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        #score {
+            font-size: 1.4em; /* Adjusted for balance */
+            font-weight: bold;
+            color: var(--score-text);
+            transition: color 0.3s ease;
+        }
+        button {
+            color: var(--button-text);
+            border: none;
+            padding: 10px 15px; /* Standardized padding */
+            font-size: 0.95em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 4px 0 #00000033, 0 5px 8px rgba(0,0,0,0.2); /* Generic shadow base */
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        button:hover {
+            box-shadow: 0 2px 0 #00000033, 0 3px 5px rgba(0,0,0,0.3);
+            transform: translateY(2px);
+        }
+        button:active {
+            box-shadow: 0 0px 0 #00000033, 0 1px 2px rgba(0,0,0,0.3);
+            transform: translateY(4px);
+        }
+
+        #restart-button-main {
+             background: linear-gradient(to bottom, #e74c3c, #c0392b);
+             box-shadow: 0 4px 0 var(--button-shadow-color-red), 0 5px 8px rgba(0,0,0,0.2);
+        }
+        #restart-button-main:hover { background: linear-gradient(to bottom, #c0392b, #e74c3c); box-shadow: 0 2px 0 var(--button-shadow-color-red), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
+        #restart-button-main:active { box-shadow: 0 0px 0 var(--button-shadow-color-red), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
+
+        #fullscreen-button {
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            box-shadow: 0 4px 0 var(--button-shadow-color-blue), 0 5px 8px rgba(0,0,0,0.2);
+        }
+        #fullscreen-button:hover { background: linear-gradient(to bottom, #2980b9, #3498db); box-shadow: 0 2px 0 var(--button-shadow-color-blue), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
+        #fullscreen-button:active { box-shadow: 0 0px 0 var(--button-shadow-color-blue), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
+        
+        #settings-button {
+            background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
+            box-shadow: 0 4px 0 var(--button-shadow-color-grey), 0 5px 8px rgba(0,0,0,0.2);
+            padding: 10px 12px;
+            font-size: 1.1em; /* For icon */
+        }
+        #settings-button:hover { background: linear-gradient(to bottom, #7f8c8d, #95a5a6); box-shadow: 0 2px 0 var(--button-shadow-color-grey), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
+        #settings-button:active { box-shadow: 0 0px 0 var(--button-shadow-color-grey), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
+
+        #game-over-screen {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            color: white;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.88);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white; /* Base text color, specific elements can override */
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #game-over-screen h2 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            color: var(--header-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            transition: color 0.3s ease;
+        }
+        #game-over-screen p {
+            font-size: 1.6em;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+        #game-over-screen button {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+            box-shadow: 0 4px 0 var(--button-shadow-color-green), 0 5px 10px rgba(0,0,0,0.3);
+            font-size: 1.1em;
+            padding: 12px 25px;
+        }
+        #game-over-screen button:hover { background: linear-gradient(to bottom, #27ae60, #2ecc71); box-shadow: 0 2px 0 var(--button-shadow-color-green), 0 3px 5px rgba(0,0,0,0.4); transform: translateY(2px); }
+        #game-over-screen button:active { box-shadow: 0 0px 0 var(--button-shadow-color-green), 0 1px 2px rgba(0,0,0,0.4); transform: translateY(4px); }
+
+        .next-bubble-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.9em;
+            color: #bdc3c7; /* Fixed color, or use a variable if theme changes it */
+        }
+        .next-bubble-area span {
+            margin-bottom: 5px;
+        }
+
+        /* Settings Panel */
+        .settings-panel-hidden {
+            display: none !important;
+        }
+        #settings-panel {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--settings-panel-bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2em;
             z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        }
+        #settings-panel.visible {
             opacity: 1;
-            transition: opacity 0.5s ease-out;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s linear 0s;
         }
-        #loading-screen.hidden {
-             opacity: 0;
-             pointer-events: none; /* Disable interaction after fading */
+        .settings-content {
+            background-color: var(--settings-content-bg);
+            color: var(--settings-text-color);
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px; /* Slightly smaller for modal feel */
+            position: relative;
+            text-align: left;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        /* --- UI Elements --- */
-        #ui-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white; /* White text */
-            text-shadow: 1px 1px 3px black; /* Black shadow for readability */
-            z-index: 50;
-            font-size: 1.5em; /* Slightly larger font */
-        }
-        #score {
-            margin-bottom: 5px;
-        }
-        #game-over-container { /* Container for Game Over text and button */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none; /* Hidden initially */
-            flex-direction: column; /* Stack text and button */
-            align-items: center; /* Center items horizontally */
-            z-index: 101; /* Above everything else */
+        .settings-content h2 {
             text-align: center;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: var(--score-text); /* Consistent header color */
+            font-size: 1.8em;
+            transition: color 0.3s ease;
         }
-        #game-over-text {
-            color: #ff1111; /* Brighter red */
-            font-family: 'Courier New', Courier, monospace; /* Monospace font */
-            font-size: 4.5em; /* Slightly larger */
-            font-weight: bold;
-            text-shadow: 3px 3px 6px black, 0 0 10px red, 0 0 20px red; /* Stronger shadow + glow */
-            margin-bottom: 30px; /* More space between text and button */
-            pointer-events: none; /* Don't block clicks on button */
-            /* Animation for glitch effect */
-             animation: glitch 1s infinite steps(2, jump-none);
-        }
-
-        /* --- Try Again Button (Error Style) --- */
-        #try-again-button {
-            padding: 12px 25px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.8em; /* Larger font */
-            font-weight: bold;
-            color: #00ff00; /* Bright green text */
-            background-color: #222; /* Dark background */
-            border: 3px solid #00ff00; /* Green border */
-            border-radius: 0px; /* Sharp corners */
-            cursor: pointer;
-            text-transform: uppercase; /* TRY AGAIN */
-            box-shadow: 0 0 10px #00ff00, inset 0 0 5px #00ff00; /* Outer and inner glow */
-            transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-            /* Prevent text selection */
-            user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            -moz-user-select: none;
-             /* Prevent iOS tap highlight */
-            -webkit-tap-highlight-color: transparent;
-             /* Initially hidden, shown via JS after delay */
-             display: none;
-        }
-        #try-again-button:hover {
-            background-color: #00ff00; /* Green background on hover */
-            color: #111; /* Dark text on hover */
-            box-shadow: 0 0 15px #00ff00, inset 0 0 10px #ffffff;
-        }
-         #try-again-button:active {
-            background-color: #00cc00; /* Slightly darker green */
-            color: #000;
-            box-shadow: 0 0 5px #00ff00, inset 0 0 15px #000000;
-            transform: scale(0.98); /* Slight press effect */
-        }
-
-        /* --- Game Over Effects --- */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
-            20%, 40%, 60%, 80% { transform: translateX(8px); }
-        }
-        .screen-shake {
-            animation: shake 0.5s linear; /* Apply shake animation */
-        }
-
-        @keyframes glitch {
-           0% { text-shadow: 3px 3px 6px black, 0 0 10px red, 0 0 20px red; opacity: 1; }
-           10% { text-shadow: -3px -3px 6px blue, 0 0 10px blue, 0 0 20px blue; opacity: 0.8; transform: translate(-3px, 2px) skewX(-5deg); }
-           20% { text-shadow: 3px 3px 6px green, 0 0 10px green, 0 0 20px green; opacity: 1; transform: translate(2px, -3px) skewX(5deg); }
-           30% { text-shadow: 3px 3px 6px black, 0 0 10px red, 0 0 20px red; opacity: 0.9; transform: translate(0, 0) skewX(0); }
-           /* Add more steps for a complex glitch */
-           100% { text-shadow: 3px 3px 6px black, 0 0 10px red, 0 0 20px red; opacity: 1; }
-        }
-
-
-        /* --- Mobile Control Buttons --- */
-        .control-button {
+        .close-button {
             position: absolute;
-            bottom: 20px; /* Position from bottom */
-            width: 80px; /* Button width */
-            height: 80px; /* Button height */
-            background-color: rgba(255, 255, 255, 0.3); /* Semi-transparent white */
-            border: 2px solid rgba(0, 0, 0, 0.5); /* Darker border */
-            border-radius: 50%; /* Circular buttons */
-            z-index: 60; /* Above canvas, below game over */
-            display: flex; /* For centering arrow inside */
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5em; /* Arrow size */
-            color: rgba(0, 0, 0, 0.7); /* Arrow color */
-            cursor: pointer; /* Indicate clickable */
-            user-select: none; -webkit-user-select: none; -ms-user-select: none; -moz-user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            top: 10px; right: 12px;
+            font-size: 2.2em; /* Larger for easier tap */
+            background: transparent !important; /* Override button base */
+            border: none;
+            color: var(--settings-text-color) !important; /* Override button base */
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+            box-shadow: none !important; /* Override button base */
+            text-shadow: none !important; /* Override button base */
+            font-weight: normal;
         }
-        .control-button:active {
-            background-color: rgba(255, 255, 255, 0.5);
+        .close-button:hover {
+            color: #e74c3c !important;
+            transform: none;
         }
-        #left-button { right: 20px; }
-        #right-button { left: 20px; }
-        /* --- End Mobile Control Buttons --- */
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+        .setting-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--settings-text-color);
+            box-sizing: border-box;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .theme-options button {
+            margin-right: 10px;
+            padding: 8px 15px;
+            font-size: 0.9em;
+            background: linear-gradient(to bottom, #bdc3c7, #95a5a6); /* Default theme button color */
+            box-shadow: 0 3px 0 #7f8c8d, 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .theme-options button:last-child { margin-right: 0; }
+        .theme-options button.active-theme {
+            background: linear-gradient(to bottom, var(--button-shadow-color-green), darken(var(--button-shadow-color-green), 10%)) !important;
+            box-shadow: 0 2px 0 darken(var(--button-shadow-color-green), 20%), inset 0 1px 2px rgba(0,0,0,0.15) !important;
+            transform: translateY(1px) !important;
+            color: white !important;
+        }
+        /* Light theme active button */
+        body.light-theme .theme-options button.active-theme {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60) !important; 
+            box-shadow: 0 2px 0 #1E8449, inset 0 1px 2px rgba(0,0,0,0.15) !important;
+        }
 
+
+        .about-section {
+            margin-top: 25px;
+            border-top: 1px solid var(--separator-color);
+            padding-top: 20px;
+            transition: border-color 0.3s ease;
+        }
+        .about-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--score-text); /* Consistent header color */
+            font-size: 1.3em;
+            transition: color 0.3s ease;
+        }
+        .about-section p {
+            font-size: 1em;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .about-section a {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--link-color);
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .about-section a:hover { color: #e67e22; }
+        .youtube-icon {
+            width: 22px;
+            height: 22px;
+            margin-right: 8px;
+        }
+
+        /* Fullscreen specific styles */
+        body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen, body:-ms-fullscreen {
+            /* Game wrapper will be flex-centered by body styles */
+        }
+        body:fullscreen #game-wrapper,
+        body:-webkit-full-screen #game-wrapper,
+        body:-moz-full-screen #game-wrapper,
+        body:-ms-fullscreen #game-wrapper {
+            width: 100%; height: 100%; 
+            padding:0; border-radius: 0; box-shadow: none;
+            /* flex properties are handled by body for centering its direct child */
+        }
+        body:fullscreen #ui-elements,
+        body:-webkit-full-screen #ui-elements,
+        body:-moz-full-screen #ui-elements,
+        body:-ms-fullscreen #ui-elements {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            max-width: 95%;
+            background-color: rgba(0,0,0,0.3);
+            padding: 10px 15px;
+            border-radius: 10px;
+            z-index: 5; /* Below game over screen, above canvas */
+        }
+        body:fullscreen #game-container,
+        body:-webkit-full-screen #game-container,
+        body:-moz-full-screen #game-container,
+        body:-ms-fullscreen #game-container {
+            border-radius: 0; box-shadow: none;
+            /* width & height set by JS */
+        }
     </style>
 </head>
 <body>
-    <div id="loading-screen">Loading...</div>
-    <div id="container"></div>
-
-    <!-- UI Elements -->
-    <div id="ui-container">
-        <div id="score">Score: 0</div>
+    <div id="game-wrapper">
+        <div id="game-container">
+            <canvas id="gameCanvas"></canvas>
+            <div id="game-over-screen">
+                <h2 data-translate-key="gameOverTitle">खेल समाप्त!</h2>
+                <p id="final-score">आपका स्कोर: 0</p>
+                <button id="restart-button-gameover" data-translate-key="playAgain">फिर से खेलें</button>
+            </div>
+        </div>
     </div>
-    <!-- Game Over Container -->
-    <div id="game-over-container">
-        <div id="game-over-text">GAME OVER!</div>
-        <button id="try-again-button">Try Again</button>
+    <div id="ui-elements">
+        <div id="score-container">
+            <span id="score">स्कोर: 0</span>
+        </div>
+        <div class="next-bubble-area">
+            <span data-translate-key="next">अगला:</span>
+            <canvas id="nextBubbleCanvas" width="50" height="50"></canvas>
+        </div>
+        <button id="restart-button-main" data-translate-key="reset">रीसेट</button>
+        <button id="fullscreen-button" data-translate-key="fullscreen">फ़ुलस्क्रीन</button>
+        <button id="settings-button" aria-label="Open Settings">⚙️</button>
     </div>
 
+    <div id="settings-panel">
+        <div class="settings-content">
+            <button id="close-settings-button" class="close-button" aria-label="Close settings">&times;</button>
+            <h2 data-translate-key="settings">सेटिंग्स</h2>
+            <div class="setting-group">
+                <label for="language-select" data-translate-key="language">भाषा:</label>
+                <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label data-translate-key="theme">थीम:</label>
+                <div class="theme-options">
+                    <button id="light-theme-button" data-translate-key="light">लाइट</button>
+                    <button id="dark-theme-button" data-translate-key="dark">डार्क</button>
+                </div>
+            </div>
+            <div class="setting-group about-section">
+                <h3 data-translate-key="about">अबाउट</h3>
+                <p>Created by Movie Time With AI 🍿</p>
+                <a href="https://youtube.com/@movietimewithai?si=JVINGxUeWPJCTgAJ" target="_blank" rel="noopener noreferrer">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkYwMDAwIj48cGF0aCBkPSJNMjEuODM2IDEwLjM5Yy4yMTggMS4yMjUtMS4wMzMgMy4zNi0xLjQ5MyA0LjExNi0uNDYgMS4xMDQtMS4xMzMgMi4xMzEtMi4xMDYgMi43MzJjLTEuNDc3LjUwMi02LjIzNy41MDItNi4yMzcuNTAyczAuMDAxIDAtLjAwMSAwYy0xLjQ3OCAwLTYuMjM3IDAtNi4yMzctLjUwMmMtLjk3My0uNjAxLTEuNjQ2LTEuNjI4LTIuMTA2LTIuNzMyQzMuMTk2IDEzLjc1IDMgMTEuNjE1IDMgMTAuMzljMC0xLjIyLjE5Ni0zLjQzLjY1Ni00LjQ2QzQuMTE2IDQuODI4IDQuNzg5IDMuOCAyMS40NzUgMi42OTggMTIgMi42OTggMTIgMi42OThzNC43NiAwIDYuMjM3LjUwMmMxLjI2NS42OTIgMS44OCAyLjM1MiAyLjEwNiAyLjczMi40NiAxLjEwNC42NTYgMy4yNDQuNjU6IDQuNDY1ek05Ljg2IDE0LjA0NGw2LjAwOC0zLjA0NC02LjAwOC0zLjA0NHY2LjA5eiIvPjwvc3ZnPg==" alt="YouTube Icon" class="youtube-icon">
+                    Movie Time With AI
+                </a>
+            </div>
+        </div>
+    </div>
 
-    <!-- Mobile Control Buttons -->
-    <div id="left-button" class="control-button">▶</div>
-    <div id="right-button" class="control-button">◀</div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const nextBubbleCanvas = document.getElementById('nextBubbleCanvas');
+        const nextBubbleCtx = nextBubbleCanvas.getContext('2d');
 
+        const scoreDisplay = document.getElementById('score');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButtonGameOver = document.getElementById('restart-button-gameover');
+        const restartButtonMain = document.getElementById('restart-button-main');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        
+        const settingsButton = document.getElementById('settings-button');
+        const settingsPanel = document.getElementById('settings-panel');
+        const closeSettingsButton = document.getElementById('close-settings-button');
+        const languageSelect = document.getElementById('language-select');
+        const lightThemeButton = document.getElementById('light-theme-button');
+        const darkThemeButton = document.getElementById('dark-theme-button');
+        const bodyElement = document.body;
 
-    <!-- Import Maps -->
-     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
-            }
-        }
-    </script>
+        // --- Game Constants and Variables ---
+        const GRID_ARRAY_ROWS = 15; // Total rows in the data grid array (includes off-screen top rows)
+        let BASE_GRID_ROWS = 11;    // Design number of rows intended to be visible above shooter area
+        
+        let GRID_ROWS; // Actual number of rows that *fit* on canvas above shooter (calculated in setCanvasSize)
+        let GRID_COLS;
+        let BUBBLE_RADIUS;
+        
+        const BUBBLE_COLORS = ['#FF5252', '#448AFF', '#00C853', '#FFD600', '#AA00FF', '#FF6D00'];
+        const SHOTS_BEFORE_NEW_ROW = 5;
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-
-        let scene, camera, renderer, carModel;
-        let ambientLight, directionalLight;
-        let road, roadLines = [], kerbs = [];
-        let buildings = [], streetLights = [], trafficLights = [];
-        const roadWidth = 10;
-        const roadLength = 200;
-        const buildingSpacing = 15;
-        const lightSpacing = 30;
-        const numBuildings = Math.floor(roadLength / buildingSpacing);
-        const numLights = Math.floor(roadLength / lightSpacing);
-        const kerbHeight = 0.2;
-        const kerbWidth = 0.3;
-
-        // --- Speed Control ---
-        const baseDriveSpeed = 0.4; // Starting speed
-        const maxDriveSpeed = 1.2; // Maximum speed limit
-        const scoreThresholdForSpeedIncrease = 50; // Increase speed every 50 points
-        const speedIncrement = 0.05; // How much to increase speed each time
-        let currentDriveSpeed = baseDriveSpeed;
-        let nextScoreThreshold = scoreThresholdForSpeedIncrease;
-        // --- End Speed Control ---
-
-        // --- Enemy Cars ---
-        let enemyCars = [];
-        const numEnemyCars = 5; // Slightly more enemies
-        const enemyCarBaseSpeedFactor = 0.8; // Base speed relative to currentDriveSpeed
-        let enemyBox = new THREE.Box3();
-        // --- End Enemy Cars ---
-
-        // --- Game State ---
-        let moveLeft = false;
-        let moveRight = false;
-        const carMoveSpeed = 0.15;
-        let carBaseY = 0;
+        let grid = [];
+        let shooterBubble;
+        let nextBubbleColor;
         let score = 0;
-        let isGameOver = false;
-        let gameOverEffectPlayed = false; // Flag to ensure effect plays only once
-        // --- End Game State ---
+        let isShooting = false;
+        let gameOver = false;
+        let shotsFired = 0;
+        let aimAngle = -Math.PI / 2;
+        let animationFrameId;
 
-        // --- Points ---
-        const points = [];
-        const numPoints = 15;
-        const pointValue = 10;
-        let pointGeometry, pointMaterial;
-        const pointRadius = 0.3;
-        let pointBox = new THREE.Box3();
-        // --- End Points ---
+        // --- Translations ---
+        const translations = {
+            hi: {
+                htmlLang: "hi",
+                title: "बबल शूटर डीलक्स (फ़ुलस्क्रीन)",
+                score: "स्कोर:",
+                next: "अगला:",
+                reset: "रीसेट",
+                fullscreen: "फ़ुलस्क्रीन",
+                exitFullscreen: "बाहर निकलें",
+                gameOverTitle: "खेल समाप्त!",
+                yourScore: "आपका स्कोर:",
+                playAgain: "फिर से खेलें",
+                settings: "सेटिंग्स",
+                language: "भाषा:",
+                theme: "थीम:",
+                light: "लाइट",
+                dark: "डार्क",
+                about: "विवरण",
+                settingsButton_aria: "सेटिंग्स खोलें",
+                closeSettings_aria: "सेटिंग्स बंद करें"
+            },
+            en: {
+                htmlLang: "en",
+                title: "Bubble Shooter Deluxe (Fullscreen)",
+                score: "Score:",
+                next: "Next:",
+                reset: "Reset",
+                fullscreen: "Fullscreen",
+                exitFullscreen: "Exit Fullscreen",
+                gameOverTitle: "Game Over!",
+                yourScore: "Your Score:",
+                playAgain: "Play Again",
+                settings: "Settings",
+                language: "Language:",
+                theme: "Theme:",
+                light: "Light",
+                dark: "Dark",
+                about: "About",
+                settingsButton_aria: "Open Settings",
+                closeSettings_aria: "Close Settings"
+            }
+        };
+        let currentLanguage = 'en';
 
-        // --- UI Elements References ---
-        const loadingScreen = document.getElementById('loading-screen');
-        const scoreElement = document.getElementById('score');
-        const gameOverContainer = document.getElementById('game-over-container');
-        const gameOverText = document.getElementById('game-over-text'); // Specific ref for text
-        const tryAgainButton = document.getElementById('try-again-button');
-        const gameContainer = document.getElementById('container'); // For screen shake
-        // --- End UI Refs ---
+        function applyTranslations(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = translations[lang].htmlLang || 'en';
+            document.title = translations[lang].title;
 
-        // --- Bounding Boxes ---
-        let playerBox = new THREE.Box3();
-        // --- End Bounding Boxes ---
-
-        const loadingManager = new THREE.LoadingManager();
-        loadingManager.onLoad = () => { console.log("All resources loaded!"); loadingScreen.classList.add('hidden'); setTimeout(() => { if (loadingScreen) loadingScreen.style.display = 'none'; }, 600); };
-        loadingManager.onError = (url) => { console.error(`There was an error loading ${url}`); loadingScreen.textContent = `Error loading: ${url}. Check console.`; loadingScreen.classList.remove('hidden'); loadingScreen.style.opacity = 1; };
-        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => { console.log(`Loading file: ${url} (${itemsLoaded}/${itemsTotal})`); const progress = Math.round((itemsLoaded / itemsTotal) * 100); loadingScreen.textContent = `Loading ${progress}%...`; };
-
-
-        init();
-        setupControls();
-        animate();
-
-        function init() {
-            // --- Basic Setup ---
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa0d7e6);
-            scene.fog = new THREE.Fog(0xa0d7e6, roadLength * 0.4, roadLength * 0.9);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.0;
-            gameContainer.appendChild(renderer.domElement); // Append to game container
-
-            // --- Lights ---
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
-            directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); directionalLight.position.set(50, 100, 50); directionalLight.castShadow = true; directionalLight.shadow.mapSize.width = 2048; directionalLight.shadow.mapSize.height = 2048; directionalLight.shadow.camera.near = 0.5; directionalLight.shadow.camera.far = 500; directionalLight.shadow.camera.left = -roadLength / 2; directionalLight.shadow.camera.right = roadLength / 2; directionalLight.shadow.camera.top = roadLength / 2; directionalLight.shadow.camera.bottom = -roadLength / 2; scene.add(directionalLight);
-
-            // --- Ground, Road, Lines, Kerbs ---
-            // (Code identical to previous version - omitted for brevity)
-            const groundGeo = new THREE.PlaneGeometry(roadLength * 1.5, roadLength); const groundMat = new THREE.MeshStandardMaterial({ color: 0x55aa55, side: THREE.DoubleSide }); const ground = new THREE.Mesh(groundGeo, groundMat); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true; scene.add(ground);
-            const roadGeo = new THREE.PlaneGeometry(roadWidth, roadLength); const roadMat = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide }); road = new THREE.Mesh(roadGeo, roadMat); road.rotation.x = -Math.PI / 2; road.position.y = 0.0; road.receiveShadow = true; scene.add(road);
-            const lineLength = 4; const lineGap = 4; const numLines = Math.floor(roadLength / (lineLength + lineGap)); const lineGeo = new THREE.PlaneGeometry(0.3, lineLength); const lineMat = new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-            for (let i = 0; i < numLines; i++) { const line = new THREE.Mesh(lineGeo, lineMat); line.rotation.x = -Math.PI / 2; line.position.y = 0.005; line.position.z = (roadLength / 2) - (lineLength / 2) - i * (lineLength + lineGap); line.receiveShadow = true; roadLines.push(line); scene.add(line); }
-            function createKerbTexture() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = 64; canvas.height = 16; const stripeWidth = 8; const colors = ['#ff0000', '#ffffff']; for (let i = 0; i < canvas.width / stripeWidth; i++) { ctx.fillStyle = colors[i % 2]; ctx.fillRect(i * stripeWidth, 0, stripeWidth, canvas.height); } return new THREE.CanvasTexture(canvas); }
-            const kerbTexture = createKerbTexture(); kerbTexture.wrapS = THREE.RepeatWrapping; kerbTexture.wrapT = THREE.ClampToEdgeWrapping; kerbTexture.repeat.set(roadLength / 4, 1);
-            const kerbGeo = new THREE.BoxGeometry(kerbWidth, kerbHeight, roadLength); const kerbMat = new THREE.MeshStandardMaterial({ map: kerbTexture });
-            const kerbLeft = new THREE.Mesh(kerbGeo, kerbMat); kerbLeft.position.set(-(roadWidth / 2) - (kerbWidth / 2), kerbHeight / 2, 0); kerbLeft.castShadow = true; kerbLeft.receiveShadow = true; scene.add(kerbLeft); kerbs.push(kerbLeft);
-            const kerbRight = new THREE.Mesh(kerbGeo, kerbMat); kerbRight.position.set((roadWidth / 2) + (kerbWidth / 2), kerbHeight / 2, 0); kerbRight.castShadow = true; kerbRight.receiveShadow = true; scene.add(kerbRight); kerbs.push(kerbRight);
-
-
-            // --- Buildings, Street Lights, Traffic Lights ---
-            // (Code identical to previous version - omitted for brevity)
-            function createBuilding() { const height = Math.random() * 30 + 10; const width = Math.random() * 8 + 4; const depth = Math.random() * 8 + 4; const buildingGeo = new THREE.BoxGeometry(width, height, depth); const buildingMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(Math.random() * 0.8 + 0.1, Math.random() * 0.8 + 0.1, Math.random() * 0.8 + 0.1), roughness: 0.8, metalness: 0.1 }); const building = new THREE.Mesh(buildingGeo, buildingMat); building.position.y = height / 2; building.castShadow = true; building.receiveShadow = true; return building; }
-            for (let i = 0; i < numBuildings; i++) { const buildingLeft = createBuilding(); const buildingRight = createBuilding(); const zPos = (roadLength / 2) - (buildingSpacing / 2) - i * buildingSpacing; const xOffsetLeft = roadWidth / 2 + kerbWidth + 1 + Math.random() * 5 + buildingLeft.geometry.parameters.width / 2; const xOffsetRight = roadWidth / 2 + kerbWidth + 1 + Math.random() * 5 + buildingRight.geometry.parameters.width / 2; buildingLeft.position.set(-xOffsetLeft, buildingLeft.position.y, zPos); buildingRight.position.set(xOffsetRight, buildingRight.position.y, zPos); buildings.push(buildingLeft, buildingRight); scene.add(buildingLeft); scene.add(buildingRight); }
-            function createStreetLight() { const group = new THREE.Group(); const poleHeight = 6; const poleRadius = 0.1; const poleGeo = new THREE.CylinderGeometry(poleRadius, poleRadius, poleHeight); const poleMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.4 }); const pole = new THREE.Mesh(poleGeo, poleMat); pole.castShadow = true; pole.position.y = poleHeight/2; group.add(pole); const armLength = 1; const armGeo = new THREE.BoxGeometry(armLength, poleRadius * 1.5, poleRadius * 1.5); const arm = new THREE.Mesh(armGeo, poleMat); arm.position.set(0, poleHeight - poleRadius * 2, 0); group.add(arm); const lightFixtureGeo = new THREE.SphereGeometry(poleRadius * 2, 16, 8); const lightFixtureMat = new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffff00, emissiveIntensity: 0.5 }); const lightFixture = new THREE.Mesh(lightFixtureGeo, lightFixtureMat); lightFixture.position.set(0, poleHeight - poleRadius * 2, 0); group.add(lightFixture); group.userData.armLength = armLength; return group;}
-            for (let i = 0; i < numLights; i++) { const lightLeft = createStreetLight(); const lightRight = createStreetLight(); const zPos = (roadLength / 2) - (lightSpacing / 2) - i * lightSpacing; const xPos = roadWidth / 2 + kerbWidth + 0.8; lightLeft.position.set(-xPos, 0, zPos); lightLeft.rotation.y = Math.PI / 2; lightLeft.children[1].position.x = -lightLeft.userData.armLength / 2; lightLeft.children[2].position.x = -lightLeft.userData.armLength; lightRight.position.set(xPos, 0, zPos); lightRight.rotation.y = -Math.PI / 2; lightRight.children[1].position.x = -lightRight.userData.armLength / 2; lightRight.children[2].position.x = -lightRight.userData.armLength; streetLights.push(lightLeft, lightRight); scene.add(lightLeft); scene.add(lightRight); }
-            function createTrafficLight() { const group = new THREE.Group(); const poleHeight = 5; const poleRadius = 0.15; const poleGeo = new THREE.CylinderGeometry(poleRadius, poleRadius, poleHeight); const poleMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.7, roughness: 0.5 }); const pole = new THREE.Mesh(poleGeo, poleMat); pole.position.y = poleHeight / 2; pole.castShadow = true; group.add(pole); const housingWidth = 0.5; const housingHeight = 1.2; const housingDepth = 0.3; const housingGeo = new THREE.BoxGeometry(housingWidth, housingHeight, housingDepth); const housingMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); const housing = new THREE.Mesh(housingGeo, housingMat); housing.position.y = poleHeight - housingHeight / 2; housing.castShadow = true; group.add(housing); const lightRadius = housingWidth * 0.25; const lightGeo = new THREE.SphereGeometry(lightRadius, 16, 8); const redMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xaa0000, emissiveIntensity: 1 }); const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xaaaa00, emissiveIntensity: 1 }); const greenMat = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, emissiveIntensity: 1 }); const redLight = new THREE.Mesh(lightGeo, redMat); redLight.position.set(0, housingHeight * 0.3, housingDepth / 2 + 0.01); housing.add(redLight); const yellowLight = new THREE.Mesh(lightGeo, yellowMat); yellowLight.position.set(0, 0, housingDepth / 2 + 0.01); housing.add(yellowLight); const greenLight = new THREE.Mesh(lightGeo, greenMat); greenLight.position.set(0, -housingHeight * 0.3, housingDepth / 2 + 0.01); housing.add(greenLight); return group; }
-            const trafficLightLeft = createTrafficLight(); const trafficLightRight = createTrafficLight(); const trafficLightZ = roadLength * 0.4; const trafficLightX = roadWidth / 2 + kerbWidth + 0.5; trafficLightLeft.position.set(-trafficLightX, 0, trafficLightZ); trafficLightLeft.rotation.y = Math.PI / 2; trafficLightRight.position.set(trafficLightX, 0, trafficLightZ); trafficLightRight.rotation.y = -Math.PI / 2; trafficLights.push(trafficLightLeft, trafficLightRight); scene.add(trafficLightLeft); scene.add(trafficLightRight);
-
-
-             // --- Points Setup ---
-            pointGeometry = new THREE.SphereGeometry(pointRadius, 8, 8);
-            pointMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xaaaa00, emissiveIntensity: 0.8 });
-            for (let i = 0; i < numPoints; i++) { const point = new THREE.Mesh(pointGeometry, pointMaterial); point.castShadow = true; resetPointPosition(point, true); points.push(point); scene.add(point); }
-
-            // --- Car Model Loading ---
-            const loader = new GLTFLoader(loadingManager);
-            const dracoLoader = new DRACOLoader(loadingManager);
-            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-            loader.setDRACOLoader(dracoLoader);
-            const carUrl = 'https://threejs.org/examples/models/gltf/ferrari.glb';
-
-            loader.load(carUrl, (gltf) => {
-                carModel = gltf.scene;
-                carModel.scale.set(0.8, 0.8, 0.8);
-                const box = new THREE.Box3().setFromObject(carModel);
-                carBaseY = -box.min.y + 0.01;
-                carModel.position.set(0, carBaseY, 0);
-                carModel.rotation.y = Math.PI;
-                carModel.traverse((node) => { if (node.isMesh) { node.castShadow = true; node.receiveShadow = true; } });
-                scene.add(carModel);
-
-                // --- Enemy Car Setup (Multiple) ---
-                enemyCars = [];
-                const enemyColors = [0x0000ff, 0x00ff00, 0xff00ff, 0x00ffff, 0xffa500]; // Added orange
-                for (let i = 0; i < numEnemyCars; i++) {
-                    const enemyCar = carModel.clone();
-                    const colorIndex = i % enemyColors.length;
-                    enemyCar.traverse((node) => {
-                         if (node.isMesh) {
-                             const enemyMaterial = node.material.clone();
-                             enemyMaterial.color.setHex(enemyColors[colorIndex]);
-                             node.material = enemyMaterial;
-                             node.castShadow = true;
-                             node.receiveShadow = true;
-                         }
-                    });
-                    resetEnemyCar(enemyCar, true); // Set initial position and speed
-                    enemyCar.rotation.y = Math.PI;
-                    scene.add(enemyCar);
-                    enemyCars.push(enemyCar);
+            document.querySelectorAll('[data-translate-key]').forEach(element => {
+                const key = element.getAttribute('data-translate-key');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                } else if (translations['en'] && translations['en'][key]) { // Fallback to English
+                    element.textContent = translations['en'][key];
                 }
-                // --- End Enemy Car Setup ---
-
-                camera.position.set(0, carBaseY + 3, -7);
-                camera.lookAt(carModel.position.x, carBaseY + 1, carModel.position.z + 5);
-
-            }, undefined, (error) => {
-                // Fallback (using carBaseY)
-                console.error('An error happened loading the car model:', error); const fallbackGeo = new THREE.BoxGeometry(2, 1, 4); const fallbackMat = new THREE.MeshStandardMaterial({color: 0xff0000}); carModel = new THREE.Mesh(fallbackGeo, fallbackMat); carBaseY = 0.5 + 0.01; carModel.position.set(0, carBaseY, 0); carModel.castShadow = true; carModel.receiveShadow = true; scene.add(carModel); camera.position.set(0, carBaseY + 3, -7); camera.lookAt(carModel.position.x, carBaseY + 1, carModel.position.z + 5); loadingScreen.textContent = 'Error loading car model. Displaying fallback.'; loadingScreen.classList.remove('hidden'); loadingScreen.style.opacity = 1;
             });
 
-            // --- Event Listeners ---
-            window.addEventListener('resize', onWindowResize, false);
-            tryAgainButton.addEventListener('click', resetGame);
-            updateScoreDisplay(); // Initial score
-        }
-
-        // --- Setup Controls (Keyboard & Touch) ---
-        function setupControls() {
-            // (Code identical to previous version - omitted for brevity)
-            window.addEventListener('keydown', (event) => {
-                if (isGameOver) return;
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = true; }
-                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = true; }
-            });
-            window.addEventListener('keyup', (event) => {
-                if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { moveLeft = false; }
-                else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { moveRight = false; }
-            });
-            const leftButton = document.getElementById('left-button');
-            const rightButton = document.getElementById('right-button');
-            if (leftButton) {
-                leftButton.addEventListener('touchstart', (e) => { if (!isGameOver) { e.preventDefault(); moveLeft = true; } }, { passive: false });
-                leftButton.addEventListener('touchend', (e) => { e.preventDefault(); moveLeft = false; });
-                leftButton.addEventListener('touchcancel', (e) => { e.preventDefault(); moveLeft = false; });
+            updateScore(); // Updates score text with current language
+            if (gameOver) { // Update game over screen text if visible
+                finalScoreDisplay.textContent = `${translations[lang].yourScore} ${score}`;
+                gameOverScreen.querySelector('h2').textContent = translations[lang].gameOverTitle;
+                restartButtonGameOver.textContent = translations[lang].playAgain;
             }
-             if (rightButton) {
-                rightButton.addEventListener('touchstart', (e) => { if (!isGameOver) { e.preventDefault(); moveRight = true; } }, { passive: false });
-                rightButton.addEventListener('touchend', (e) => { e.preventDefault(); moveRight = false; });
-                rightButton.addEventListener('touchcancel', (e) => { e.preventDefault(); moveRight = false; });
-            }
-        }
-
-        // --- Reset Point Position ---
-        function resetPointPosition(point, initial = false) {
-            const laneWidth = roadWidth / 2 - kerbWidth - pointRadius * 2;
-            point.position.x = (Math.random() * 2 - 1) * laneWidth;
-            point.position.y = pointRadius + 0.01;
-            if (initial) { point.position.z = Math.random() * roadLength - roadLength / 2; }
-            else { point.position.z = roadLength / 2 + Math.random() * roadLength * 0.5; }
-            point.visible = true;
-        }
-
-        // --- Reset Enemy Car Position and Speed ---
-        function resetEnemyCar(enemy, initial = false) {
-            const laneWidth = roadWidth / 4;
-            enemy.position.x = (Math.random() < 0.5 ? -1 : 1) * laneWidth * (0.5 + Math.random() * 0.8);
-            enemy.position.y = carBaseY;
-
-            if (initial) {
-                 enemy.position.z = roadLength * 0.6 + Math.random() * roadLength * 1.2;
+            
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                fullscreenButton.textContent = translations[lang].exitFullscreen;
             } else {
-                 enemy.position.z = roadLength / 2 + Math.random() * roadLength * 1.5;
+                fullscreenButton.textContent = translations[lang].fullscreen;
             }
-            // Adjust speed based on currentDriveSpeed + random variation
-            const speedRelativeToPlayer = currentDriveSpeed * enemyCarBaseSpeedFactor;
-            enemy.userData.speed = speedRelativeToPlayer * (0.85 + Math.random() * 0.4); // e.g., 85% to 125% of relative speed
+            settingsButton.setAttribute('aria-label', translations[lang].settingsButton_aria || translations.en.settingsButton_aria);
+            closeSettingsButton.setAttribute('aria-label', translations[lang].closeSettings_aria || translations.en.closeSettings_aria);
         }
 
-        // --- Reset Game Function ---
-        function resetGame() {
-            console.log("Resetting game...");
-            isGameOver = false;
-            gameOverEffectPlayed = false; // Reset effect flag
-            score = 0;
-            currentDriveSpeed = baseDriveSpeed; // Reset speed
-            nextScoreThreshold = scoreThresholdForSpeedIncrease; // Reset speed threshold
-            updateScoreDisplay();
-
-            // Hide Game Over UI immediately
-            gameOverContainer.style.display = 'none';
-            gameOverText.style.display = 'none'; // Hide text specifically
-            tryAgainButton.style.display = 'none'; // Hide button specifically
-            gameContainer.classList.remove('screen-shake'); // Ensure shake class is removed
-
-            // Reset Player Car
-            if (carModel) { carModel.position.set(0, carBaseY, 0); }
-            camera.position.x = 0;
-
-            // Reset Control Flags
-            moveLeft = false;
-            moveRight = false;
-
-            // Reset Points
-            points.forEach(point => resetPointPosition(point, true));
-
-            // Reset Enemy Cars (with updated speed logic relative to reset drive speed)
-            enemyCars.forEach(enemy => resetEnemyCar(enemy, true));
-
-            // Restart animation loop logic (implicitly happens as isGameOver is false)
-        }
-
-        // --- Update Score Display ---
-        function updateScoreDisplay() { scoreElement.textContent = `Score: ${score}`; }
-
-        // --- Window Resize ---
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // --- Trigger Game Over Effects ---
-        function triggerGameOverEffects() {
-            if (gameOverEffectPlayed) return; // Only play once
-            gameOverEffectPlayed = true;
-
-            console.log("Triggering Game Over Effects");
-             // 1. Show container and text immediately
-            gameOverContainer.style.display = 'flex';
-            gameOverText.style.display = 'block'; // Show text
-            tryAgainButton.style.display = 'none'; // Ensure button is hidden initially
-
-            // 2. Apply screen shake
-            gameContainer.classList.add('screen-shake');
-
-            // 3. Remove shake after duration and show button slightly after
+        // --- Settings Panel Logic ---
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.add('visible');
+            settingsPanel.classList.remove('settings-panel-hidden'); // Keep for initial state
+        });
+        closeSettingsButton.addEventListener('click', () => {
+            settingsPanel.classList.remove('visible');
+             // Delay hiding to allow fade-out transition
             setTimeout(() => {
-                gameContainer.classList.remove('screen-shake');
-            }, 500); // Match CSS animation duration
+                 if (!settingsPanel.classList.contains('visible')) { // Check if still meant to be hidden
+                    settingsPanel.classList.add('settings-panel-hidden');
+                 }
+            }, 300); // Match CSS transition duration
+        });
 
-            setTimeout(() => {
-                 tryAgainButton.style.display = 'block'; // Show button after shake/glitch
-            }, 650); // Delay slightly longer than shake
+        languageSelect.addEventListener('change', (event) => {
+            const selectedLang = event.target.value;
+            applyTranslations(selectedLang);
+            localStorage.setItem('bubbleShooterLang', selectedLang);
+        });
+
+        function applyTheme(theme) {
+            bodyElement.classList.remove('light-theme', 'dark-theme');
+            bodyElement.classList.add(theme + '-theme');
+            localStorage.setItem('bubbleShooterTheme', theme);
+
+            lightThemeButton.classList.toggle('active-theme', theme === 'light');
+            darkThemeButton.classList.toggle('active-theme', theme === 'dark');
+            
+            // Redraw elements that might depend on theme colors (like next bubble if its bg was themed)
+            // For this game, bubble colors are fixed. UI is handled by CSS.
+            // If shooter or next bubble had themed elements, redraw them:
+            // if(shooterBubble) shooterBubble.draw(); 
+            // drawNextBubble();
+        }
+        lightThemeButton.addEventListener('click', () => applyTheme('light'));
+        darkThemeButton.addEventListener('click', () => applyTheme('dark'));
+
+        function loadPreferences() {
+            const savedLang = localStorage.getItem('bubbleShooterLang') || 'en';
+            languageSelect.value = savedLang;
+            applyTranslations(savedLang);
+
+            const savedTheme = localStorage.getItem('bubbleShooterTheme') || 'dark';
+            applyTheme(savedTheme);
         }
 
+        // --- Game Setup and Logic ---
+        function setCanvasSize() {
+            const gameWrapper = document.getElementById('game-wrapper');
+            const uiElements = document.getElementById('ui-elements');
+            let availableWidth, availableHeightForCanvas;
+            let isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
 
-        // --- Animation Loop ---
-        function animate() {
-            requestAnimationFrame(animate);
+            if (isCurrentlyFullscreen) {
+                availableWidth = window.screen.width;
+                // For fullscreen, UI is an overlay, so canvas can use more height.
+                availableHeightForCanvas = window.screen.height - (uiElements.offsetHeight + 30); // 30 for margin around UI
+            } else {
+                availableWidth = window.innerWidth;
+                // Subtract UI height and wrapper's own padding/margins from window height
+                const wrapperVerticalPadding = (parseInt(getComputedStyle(gameWrapper).paddingTop) || 0) + (parseInt(getComputedStyle(gameWrapper).paddingBottom) || 0);
+                availableHeightForCanvas = window.innerHeight - uiElements.offsetHeight - wrapperVerticalPadding - 40; // Extra 40 for general margins
+            }
+            availableHeightForCanvas = Math.max(250, availableHeightForCanvas); // Ensure a minimum workable height
 
-            // --- Game Over Check & Effects ---
-            if (isGameOver) {
-                // Trigger the visual effects *once* when game over state is first entered
-                triggerGameOverEffects();
-                // Still need to render the scene to show the game over screen/effects
-                renderer.render(scene, camera);
-                return; // Stop game logic updates
+            if (availableWidth < 450) { GRID_COLS = 8; }
+            else if (availableWidth < 768) { GRID_COLS = 9; }
+            else if (availableWidth < 1024) { GRID_COLS = 10; }
+            else { GRID_COLS = 11; }
+            
+            // Calculate bubble radius based on available width and number of columns
+            // Allow for slight gaps between bubbles by not using full (GRID_COLS * 2)
+            BUBBLE_RADIUS = Math.floor(availableWidth / (GRID_COLS * 2 * 1.08)); // 1.08 factor for spacing
+            BUBBLE_RADIUS = Math.max(10, Math.min(BUBBLE_RADIUS, 28)); // Clamp radius (10px min, 28px max)
+
+            canvas.width = GRID_COLS * BUBBLE_RADIUS * 2;
+            
+            let idealCanvasHeight = (BASE_GRID_ROWS + 1.5) * BUBBLE_RADIUS * 1.75; // 1.75 for hexagonal packing (sqrt(3))
+            canvas.height = Math.min(idealCanvasHeight, availableHeightForCanvas);
+            // Ensure minimum height for a few rows
+            canvas.height = Math.max(canvas.height, BUBBLE_RADIUS * 1.75 * 5); // Min ~4 rows + shooter
+
+            GRID_ROWS = Math.max(4, Math.floor((canvas.height / (BUBBLE_RADIUS * 1.75)) - 1.5)); // Recalculate actual fit rows
+            GRID_ROWS = Math.min(GRID_ROWS, GRID_ARRAY_ROWS - 1); // Cap by array size
+
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.style.width = canvas.width + 'px';
+            gameContainer.style.height = canvas.height + 'px';
+
+            nextBubbleCanvas.width = BUBBLE_RADIUS * 2.3; // Adjust size for next bubble preview
+            nextBubbleCanvas.height = BUBBLE_RADIUS * 2.3;
+
+            if (shooterBubble) {
+                shooterBubble.x = canvas.width / 2;
+                shooterBubble.y = canvas.height - BUBBLE_RADIUS * 1.5;
+                shooterBubble.radius = BUBBLE_RADIUS;
+            }
+            drawNextBubble();
+        }
+
+        class Bubble {
+            constructor(x, y, radius, color, dx = 0, dy = 0, row = -1, col = -1) {
+                this.x = x; this.y = y; this.radius = radius; this.color = color;
+                this.dx = dx; this.dy = dy; this.row = row; this.col = col;
+                this.isFalling = false; this.popping = false; this.popAnimation = 0;
+            }
+            draw(context = ctx) {
+                if (this.popping && this.popAnimation > 1) return;
+                context.beginPath();
+                const gradient = context.createRadialGradient(
+                    this.x - this.radius * 0.25, this.y - this.radius * 0.35, this.radius * 0.1,
+                    this.x, this.y, this.radius
+                );
+                gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
+                gradient.addColorStop(0.6, this.color);
+                gradient.addColorStop(1, this.color);
+                context.fillStyle = gradient;
+                
+                let currentRadius = this.radius;
+                if (this.popping) {
+                    currentRadius = this.radius * (1 - this.popAnimation * 0.8); // Pop shrink effect
+                    this.popAnimation += 0.12; // Pop animation speed
+                }
+                context.arc(this.x, this.y, Math.max(0, currentRadius * 0.95), 0, Math.PI * 2);
+                context.fill();
+
+                if (!this.popping || currentRadius > this.radius * 0.2) { // Only draw highlight if not too small
+                    context.beginPath();
+                    context.arc( this.x - this.radius * 0.3, this.y - this.radius * 0.4, this.radius * 0.12, 0, Math.PI * 2);
+                    context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    context.fill();
+                }
+                context.closePath();
+            }
+            update() {
+                if (this.isFalling) { this.dy += 0.6; this.y += this.dy; } 
+                else if (!this.popping) { this.x += this.dx; this.y += this.dy; }
+            }
+        }
+
+        function getRandomColor() {
+            const activeColors = new Set();
+            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (grid[r] && grid[r][c] && !grid[r][c].popping) activeColors.add(grid[r][c].color);
+                }
+            }
+            if (activeColors.size > 0) {
+                const colorsArray = Array.from(activeColors);
+                return colorsArray[Math.floor(Math.random() * colorsArray.length)];
+            }
+            return BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
+        }
+
+        function initGrid(fullReset = true) {
+            if (fullReset) {
+                grid = [];
+                for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                    grid[r] = new Array(GRID_COLS).fill(null);
+                    if (r < 5) { 
+                        for (let c = 0; c < GRID_COLS; c++) {
+                            grid[r][c] = new Bubble(getBubbleX(c, r), getBubbleY(r), BUBBLE_RADIUS, BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)], 0, 0, r, c);
+                        }
+                    }
+                }
+            } else { // Resize: update positions and radii of existing bubbles
+                for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
+                        if (grid[r] && grid[r][c]) {
+                            grid[r][c].x = getBubbleX(c,r);
+                            grid[r][c].y = getBubbleY(r);
+                            grid[r][c].radius = BUBBLE_RADIUS;
+                        }
+                    }
+                }
+            }
+        }
+        
+        function getBubbleX(col, row) { return col * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS + ((row % 2 === 0) ? 0 : BUBBLE_RADIUS); }
+        function getBubbleY(row) { return row * BUBBLE_RADIUS * 1.75 + BUBBLE_RADIUS; } // 1.75 ~ sqrt(3) for hex
+
+        function createShooterBubble() {
+            const x = canvas.width / 2;
+            const y = canvas.height - BUBBLE_RADIUS * 1.5;
+            if (!nextBubbleColor) nextBubbleColor = getRandomColor();
+            shooterBubble = new Bubble(x, y, BUBBLE_RADIUS, nextBubbleColor);
+            nextBubbleColor = getRandomColor();
+            drawNextBubble();
+        }
+
+        function drawNextBubble() {
+            nextBubbleCtx.clearRect(0,0, nextBubbleCanvas.width, nextBubbleCanvas.height);
+            if (nextBubbleColor) {
+                const previewRadius = Math.min(BUBBLE_RADIUS, nextBubbleCanvas.width / 2.5); // Ensure it fits
+                const tempBubble = new Bubble(nextBubbleCanvas.width / 2, nextBubbleCanvas.height / 2, previewRadius, nextBubbleColor);
+                tempBubble.draw(nextBubbleCtx);
+            }
+        }
+        
+        function drawGrid() {
+            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (grid[r] && grid[r][c] && grid[r][c].y < canvas.height + BUBBLE_RADIUS * 2) { // Draw if near/on screen
+                        grid[r][c].draw();
+                    }
+                }
+            }
+        }
+        
+        function drawShooter() { if (shooterBubble) shooterBubble.draw(); }
+
+        function drawAimLine() {
+            if (gameOver || isShooting || !shooterBubble) return;
+            ctx.beginPath();
+            ctx.moveTo(shooterBubble.x, shooterBubble.y);
+            const lineLength = canvas.height * 0.8; 
+            const endX = shooterBubble.x + lineLength * Math.cos(aimAngle);
+            const endY = shooterBubble.y + lineLength * Math.sin(aimAngle);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = 'rgba(236, 240, 241, 0.3)'; // Lighter aim line
+            ctx.lineWidth = Math.max(2, BUBBLE_RADIUS * 0.1);
+            ctx.setLineDash([BUBBLE_RADIUS*0.25, BUBBLE_RADIUS*0.25]);
+            ctx.stroke();
+            ctx.setLineDash([]); 
+            ctx.closePath();
+        }
+
+        function getGridCoordinates(pixelX, pixelY) { // For snapping
+            const approxRow = (pixelY - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 1.75);
+            const row = Math.round(approxRow);
+            let approxCol;
+            if (row % 2 === 0) { approxCol = (pixelX - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 2); }
+            else { approxCol = (pixelX - BUBBLE_RADIUS * 2) / (BUBBLE_RADIUS * 2); }
+            const col = Math.round(approxCol);
+            return { 
+                row: Math.max(0, Math.min(GRID_ARRAY_ROWS - 1, row)), 
+                col: Math.max(0, Math.min(GRID_COLS - 1, col)) 
+            };
+        }
+
+        function snapToGrid(bubble) {
+            let minDistance = Infinity;
+            let snapPos = null;
+            const { row: hitRow, col: hitCol } = getGridCoordinates(bubble.x, bubble.y);
+
+            for (let r_offset = -2; r_offset <= 2; r_offset++) {
+                for (let c_offset = -2; c_offset <= 2; c_offset++) {
+                    const r = hitRow + r_offset;
+                    const c = hitCol + c_offset;
+
+                    if (r >= 0 && r < GRID_ARRAY_ROWS && c >= 0 && c < GRID_COLS) {
+                        if (!grid[r] || !grid[r][c]) { // If cell is empty
+                            const targetX = getBubbleX(c, r);
+                            const targetY = getBubbleY(r);
+                            // Ensure snap target is not too high above visible area or too low
+                            if (targetY < -BUBBLE_RADIUS || targetY > canvas.height - BUBBLE_RADIUS * 0.5) continue;
+
+                            const dist = Math.hypot(bubble.x - targetX, bubble.y - targetY);
+
+                            if (dist < minDistance && dist < BUBBLE_RADIUS * 2.5) { // Snap radius
+                                let canSnapHere = (r === 0); // Can always snap to top row if empty
+                                if (!canSnapHere) {
+                                    const neighbors = getHexNeighbors(r, c);
+                                    for (const n of neighbors) {
+                                        if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping) {
+                                            canSnapHere = true; break;
+                                        }
+                                    }
+                                }
+                                if (canSnapHere) {
+                                    minDistance = dist;
+                                    snapPos = { row: r, col: c, x: targetX, y: targetY };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Fallback if no ideal snap pos found (e.g. shooting into wide empty space)
+            if (!snapPos) {
+                const r = Math.max(0, Math.min(GRID_ARRAY_ROWS - 1, hitRow));
+                let c = Math.max(0, Math.min(GRID_COLS - 1, hitCol));
+                // Ensure column is valid for the row's offset
+                if (r % 2 !== 0 && c >= GRID_COLS -1 && getBubbleX(c,r) > canvas.width - BUBBLE_RADIUS) c = GRID_COLS -2;
+
+
+                if(!grid[r] || !grid[r][c]) { // If calculated impact point is empty
+                    snapPos = { row: r, col: c, x: getBubbleX(c,r), y: getBubbleY(r) };
+                } else { // Try adjacent empty cells
+                    const neighbors = getHexNeighbors(r,c);
+                    for (const n of neighbors) {
+                        if (n.row >= 0 && n.row < GRID_ARRAY_ROWS && n.col >= 0 && n.col < GRID_COLS && 
+                            (!grid[n.row] || !grid[n.row][n.col])) {
+                            snapPos = { row: n.row, col: n.col, x: getBubbleX(n.col, n.row), y: getBubbleY(n.row) };
+                            break;
+                        }
+                    }
+                    if (!snapPos) { // Ultimate fallback: just use calculated, even if occupied (should be rare)
+                         snapPos = { row: r, col: c, x: getBubbleX(c,r), y: getBubbleY(r) };
+                    }
+                }
             }
 
-            // --- Normal Game Logic ---
-            const deltaZ = currentDriveSpeed; // Use current speed for movement
 
-            // --- Scenery Movement (using currentDriveSpeed) ---
-            roadLines.forEach(line => { line.position.z -= deltaZ; if (line.position.z < -roadLength / 2) { line.position.z += roadLength; } });
-            buildings.forEach(building => { building.position.z -= deltaZ; if (building.position.z < -roadLength / 2 - building.geometry.parameters.depth / 2) { building.position.z += roadLength + Math.random() * buildingSpacing * 2; const sideSign = Math.sign(building.position.x); const xOffset = roadWidth / 2 + kerbWidth + 1 + Math.random() * 5 + building.geometry.parameters.width / 2; building.position.x = sideSign * xOffset; } });
-            streetLights.forEach(light => { light.position.z -= deltaZ; if (light.position.z < -roadLength / 2) { light.position.z += roadLength + Math.random() * lightSpacing * 2; } });
-            trafficLights.forEach(light => { light.position.z -= deltaZ; if (light.position.z < -roadLength / 2) { light.position.z += roadLength * 1.5 + Math.random() * roadLength; } });
-            kerbs.forEach(kerb => { kerb.position.z -= deltaZ; if (kerb.position.z < -roadLength / 2) { kerb.position.z += roadLength; } });
+            if (snapPos) {
+                bubble.row = snapPos.row; bubble.col = snapPos.col;
+                bubble.x = snapPos.x; bubble.y = snapPos.y;
 
+                if (bubble.row >= 0 && bubble.row < GRID_ARRAY_ROWS && bubble.col >=0 && bubble.col < GRID_COLS) {
+                    if(!grid[snapPos.row]) grid[snapPos.row] = new Array(GRID_COLS).fill(null);
+                    grid[snapPos.row][snapPos.col] = bubble;
+                } else {
+                    triggerGameOver("Bubble snapped out of bounds"); return; // Should not happen with good snapPos logic
+                }
 
-             // --- Move and Recycle Points (using currentDriveSpeed) ---
-             points.forEach(point => {
-                 if (!point.visible) return;
-                 point.position.z -= deltaZ;
-                 if (point.position.z < -roadLength / 2) {
-                     resetPointPosition(point);
-                 }
-             });
-
-             // --- Move and Recycle Enemy Cars (using their individual speed) ---
-             enemyCars.forEach(enemy => {
-                 const currentEnemySpeed = enemy.userData.speed; // Already calculated based on drive speed + variation
-                 enemy.position.z -= currentEnemySpeed;
-                 if (enemy.position.z < -roadLength / 2 - 10) {
-                    resetEnemyCar(enemy); // Resets position and recalculates speed based on currentDriveSpeed
-                 }
-             });
-
-             // --- Handle Player Car Controls & Update Bounding Box ---
-             if (carModel && carBaseY > 0) {
-                let maxBounds = roadWidth / 2 - kerbWidth - 0.1;
-                try {
-                    const tempBox = new THREE.Box3().setFromObject(carModel);
-                    const carWidth = tempBox.max.x - tempBox.min.x;
-                    const carHalfWidth = carWidth / 2;
-                    maxBounds = roadWidth / 2 - kerbWidth - carHalfWidth - 0.1;
-                } catch(e) { console.warn("Could not get car bounding box size, using default bounds."); }
-
-                if (moveLeft && carModel.position.x > -maxBounds) { carModel.position.x -= carMoveSpeed; }
-                if (moveRight && carModel.position.x < maxBounds) { carModel.position.x += carMoveSpeed; }
-                carModel.position.x = Math.max(-maxBounds, Math.min(maxBounds, carModel.position.x));
-
-                playerBox.setFromObject(carModel); // Update player box *after* movement
-
-                // Update Camera
-                const targetCameraX = carModel.position.x * 0.5;
-                camera.position.x += (targetCameraX - camera.position.x) * 0.1;
-                camera.lookAt(carModel.position.x, carBaseY + 1, carModel.position.z + 5);
-             }
-
-             // --- Collision Detection ---
-             if (carModel) {
-                 // Point Collision & Speed Increase Check
-                 points.forEach(point => {
-                     if (!point.visible) return;
-                     pointBox.setFromObject(point);
-                     if (playerBox.intersectsBox(pointBox)) {
-                         score += pointValue;
-                         updateScoreDisplay();
-                         point.visible = false; // Hide point
-
-                         // --- Check for Speed Increase ---
-                         if (score >= nextScoreThreshold && currentDriveSpeed < maxDriveSpeed) {
-                             currentDriveSpeed = Math.min(maxDriveSpeed, currentDriveSpeed + speedIncrement);
-                             nextScoreThreshold += scoreThresholdForSpeedIncrease; // Set next target score
-                             console.log(`Speed Increased! Current: ${currentDriveSpeed.toFixed(2)}, Next threshold: ${nextScoreThreshold}`);
-                             // Optional: Update existing enemy speeds slightly or let reset handle it
-                              enemyCars.forEach(enemy => {
-                                 // Recalculate speed slightly to reflect new base speed
-                                const speedRelativeToPlayer = currentDriveSpeed * enemyCarBaseSpeedFactor;
-                                enemy.userData.speed = speedRelativeToPlayer * (0.85 + Math.random() * 0.4);
-                              });
-                         }
-                         // --- End Speed Increase Check ---
-                     }
-                 });
-
-                 // Enemy Collision
-                 if (!isGameOver) { // Check enemy collision only if not already game over
-                     enemyCars.forEach(enemy => {
-                         enemyBox.setFromObject(enemy);
-                         if (playerBox.intersectsBox(enemyBox)) {
-                             console.log("Collision with enemy!");
-                             isGameOver = true;
-                             // Effects are now handled by the check at the start of animate()
-                             return; // Exit enemy collision check loop
-                         }
-                     });
-                 }
-             }
-
-            // --- Render ---
-            renderer.render(scene, camera);
+                // Game over if bubble snaps into the "too low" zone (near shooter)
+                if (bubble.row >= GRID_ROWS -1 && getBubbleY(bubble.row) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS * 2) { 
+                    triggerGameOver("Bubble landed too low"); return;
+                }
+                
+                const matchedBubbles = findMatches(snapPos.row, snapPos.col);
+                if (matchedBubbles.length >= 3) {
+                    removeBubbles(matchedBubbles);
+                    setTimeout(() => removeFloatingBubbles(), 150); // Delay for pop animation
+                    score += matchedBubbles.length * 10 + (matchedBubbles.length - 3) * 5; // Bonus for longer chains
+                } else {
+                    shotsFired++;
+                    if (shotsFired >= SHOTS_BEFORE_NEW_ROW) {
+                        addNewRow();
+                        shotsFired = 0;
+                    }
+                }
+            } else {
+                // This case should ideally not be reached if snap logic is robust
+                triggerGameOver("Failed to snap bubble"); 
+            }
+        }
+        
+        function getHexNeighbors(row, col) {
+            const neighbors = [];
+            const evenRowDirs = [ { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, { dr: -1, dc: 0 }, { dr: -1, dc: -1 }, { dr: 1, dc: 0 }, { dr: 1, dc: -1 }];
+            const oddRowDirs =  [ { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, { dr: -1, dc: 0 }, { dr: -1, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: 1 }];
+            const dirs = (row % 2 === 0) ? evenRowDirs : oddRowDirs;
+            for (const dir of dirs) {
+                const nr = row + dir.dr; const nc = col + dir.dc;
+                if (nr >= 0 && nr < GRID_ARRAY_ROWS && nc >= 0 && nc < GRID_COLS) {
+                    neighbors.push({row: nr, col: nc});
+                }
+            }
+            return neighbors;
         }
 
+        function findMatches(startRow, startCol) {
+            if (!grid[startRow] || !grid[startRow][startCol] || grid[startRow][startCol].popping) return [];
+            const colorToMatch = grid[startRow][startCol].color;
+            const q = [{row: startRow, col: startCol}];
+            const matched = []; const visited = new Set([`${startRow}-${startCol}`]);
+            while (q.length > 0) {
+                const current = q.shift(); matched.push(current);
+                const neighbors = getHexNeighbors(current.row, current.col);
+                for (const n of neighbors) {
+                    const key = `${n.row}-${n.col}`;
+                    if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping &&
+                        grid[n.row][n.col].color === colorToMatch && !visited.has(key)) {
+                        visited.add(key); q.push(n);
+                    }
+                }
+            }
+            return matched;
+        }
+        
+        function removeBubbles(bubblesToRemove) {
+            bubblesToRemove.forEach(b => {
+                if (grid[b.row] && grid[b.row][b.col]) {
+                    grid[b.row][b.col].popping = true;
+                    grid[b.row][b.col].popAnimation = 0;
+                }
+            });
+        }
+
+        function removeFloatingBubbles() {
+            const supported = new Set(); const q = [];
+            for (let c = 0; c < GRID_COLS; c++) { // Check top row for support
+                if (grid[0] && grid[0][c] && !grid[0][c].popping) {
+                    q.push({row: 0, col: c}); supported.add(`0-${c}`);
+                }
+            }
+            while(q.length > 0) {
+                const current = q.shift();
+                const neighbors = getHexNeighbors(current.row, current.col);
+                for (const n of neighbors) {
+                    const key = `${n.row}-${n.col}`;
+                    if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping && !supported.has(key)) {
+                        supported.add(key); q.push(n);
+                    }
+                }
+            }
+            const floating = [];
+            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (grid[r] && grid[r][c] && !grid[r][c].popping && !supported.has(`${r}-${c}`)) {
+                        floating.push({row: r, col: c});
+                        score += 15; // Bonus for dropped bubbles
+                    }
+                }
+            }
+            if (floating.length > 0) removeBubbles(floating);
+            updateScore();
+        }
+        
+        function addNewRow() {
+            // Check if adding a new row would immediately cause game over
+            for (let c = 0; c < GRID_COLS; c++) {
+                if (grid[GRID_ROWS - 1] && grid[GRID_ROWS - 1][c] && !grid[GRID_ROWS - 1][c].popping) {
+                     triggerGameOver("New row caused stack to reach bottom"); return;
+                }
+            }
+            // Shift all bubbles down
+            for (let r = GRID_ARRAY_ROWS - 1; r > 0; r--) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if(!grid[r]) grid[r] = new Array(GRID_COLS).fill(null);
+                    grid[r][c] = grid[r-1] ? grid[r-1][c] : null;
+                    if (grid[r][c]) {
+                        grid[r][c].row = r;
+                        grid[r][c].y = getBubbleY(r);
+                        grid[r][c].x = getBubbleX(c,r); // Recalculate X due to potential stagger change
+                    }
+                }
+            }
+            // Add new row at the top
+            if(!grid[0]) grid[0] = new Array(GRID_COLS).fill(null);
+            for (let c = 0; c < GRID_COLS; c++) {
+                grid[0][c] = new Bubble(getBubbleX(c,0), getBubbleY(0), BUBBLE_RADIUS, 
+                                        BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)], 0,0,0,c);
+            }
+            // After adding, re-check for game over condition due to the new row pushing others down
+            for (let c = 0; c < GRID_COLS; c++) {
+                // Check the last visible row (GRID_ROWS - 1) and one below it for safety
+                for (let check_r = GRID_ROWS -1; check_r < GRID_ROWS +1 && check_r < GRID_ARRAY_ROWS; check_r++) {
+                    if (grid[check_r] && grid[check_r][c] && !grid[check_r][c].popping &&
+                        getBubbleY(check_r) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS * 2) {
+                        triggerGameOver("Stack reached bottom after new row"); return;
+                    }
+                }
+            }
+        }
+
+        function checkCollisions() {
+            if (!shooterBubble || gameOver) return;
+
+            // Wall bounce
+            if (shooterBubble.x - shooterBubble.radius < 0 || shooterBubble.x + shooterBubble.radius > canvas.width) {
+                shooterBubble.dx *= -1;
+                shooterBubble.x = Math.max(shooterBubble.radius, Math.min(shooterBubble.x, canvas.width - shooterBubble.radius));
+            }
+            // Top boundary collision
+            if (shooterBubble.y - shooterBubble.radius < getBubbleY(0)) { // Approximate top of grid
+                shooterBubble.y = getBubbleY(0) + shooterBubble.radius * 0.1; // Prevent going too far up
+                stopShootingAndSnap(); return;
+            }
+            // Collision with grid bubbles
+            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    const bubble = grid[r] ? grid[r][c] : null;
+                    if (bubble && !bubble.popping) {
+                        const dist = Math.hypot(shooterBubble.x - bubble.x, shooterBubble.y - bubble.y);
+                        if (dist < shooterBubble.radius + bubble.radius - (BUBBLE_RADIUS*0.2) ) { // Adjusted threshold
+                            stopShootingAndSnap(); return;
+                        }
+                    }
+                }
+            }
+        }
+        
+        function stopShootingAndSnap() {
+            isShooting = false;
+            if (!shooterBubble) return; // Could be null if game over triggered mid-shot
+            shooterBubble.dx = 0; shooterBubble.dy = 0;
+            snapToGrid(shooterBubble); // This function handles logic after snap
+            if (!gameOver) createShooterBubble();
+            else shooterBubble = null;
+        }
+
+        function updateScore() {
+            scoreDisplay.textContent = `${translations[currentLanguage].score} ${score}`;
+        }
+
+        function triggerGameOver(reason = "Unknown") {
+            if (gameOver) return;
+            console.log("Game Over triggered. Reason:", reason);
+            gameOver = true;
+            isShooting = false; 
+            shooterBubble = null; // Remove shooter bubble
+            finalScoreDisplay.textContent = `${translations[currentLanguage].yourScore} ${score}`;
+            gameOverScreen.querySelector('h2').textContent = translations[currentLanguage].gameOverTitle;
+            gameOverScreen.querySelector('button').textContent = translations[currentLanguage].playAgain;
+            gameOverScreen.style.display = 'flex';
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        }
+
+        function restartGame(fullReset = true) {
+            if (!fullReset) { // Resize or non-gameplay state change
+                setCanvasSize();
+                initGrid(false); // Update existing grid elements' sizes/positions
+                if(!shooterBubble && !gameOver) createShooterBubble();
+                // applyTranslations(currentLanguage); // Already handled by resize/fullscreenchange typically
+                return;
+            }
+            
+            score = 0; shotsFired = 0;
+            gameOver = false; isShooting = false;
+            gameOverScreen.style.display = 'none';
+            
+            setCanvasSize(); 
+            initGrid(true); // Full grid re-initialization
+            nextBubbleColor = getRandomColor();
+            createShooterBubble(); 
+            
+            updateScore(); // Update score display with initial score and language
+            // applyTranslations(currentLanguage); // To ensure all static text is correct (redundant if loadPrefs called)
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+
+        function handleAim(event) {
+            if (gameOver || isShooting || !shooterBubble) return;
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            if (event.touches) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; }
+            else { clientX = event.clientX; clientY = event.clientY; }
+            
+            const scaleX = canvas.width / rect.width;    // Relationship bitmap vs. element for X
+            const scaleY = canvas.height / rect.height;  // Relationship bitmap vs. element for Y
+
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+
+            const dx = canvasX - shooterBubble.x;
+            const dy = canvasY - shooterBubble.y;
+            aimAngle = Math.atan2(dy, dx);
+            // Clamp aim angle to prevent shooting too horizontally or downwards
+            const minAngle = -Math.PI * 0.95; const maxAngle = -Math.PI * 0.05; 
+            aimAngle = Math.max(minAngle, Math.min(maxAngle, aimAngle));
+        }
+
+        function handleShoot(event) {
+            if (gameOver || isShooting || !shooterBubble) return;
+            // Prevent default for touch events to avoid issues like double tap zoom.
+            if (event.type === 'touchend' || event.type === 'touchstart' || event.type === 'touchmove') event.preventDefault();
+            
+            // On mousedown/touchstart, just aim. Shooting happens on click/touchend.
+            if (event.type === 'mousedown' || event.type === 'touchstart') { 
+                handleAim(event); // Update aim on initial press
+                return; 
+            }
+            // Only shoot on 'click' or 'touchend'
+            if (event.type !== 'click' && event.type !== 'touchend') return;
+
+            isShooting = true;
+            const speed = BUBBLE_RADIUS * 0.65; // Adjusted speed
+            shooterBubble.dx = Math.cos(aimAngle) * speed;
+            shooterBubble.dy = Math.sin(aimAngle) * speed;
+        }
+        
+        canvas.addEventListener('mousemove', handleAim);
+        canvas.addEventListener('touchmove', handleAim, { passive: false });
+        canvas.addEventListener('mousedown', handleShoot); // For aiming
+        canvas.addEventListener('click', handleShoot);     // For shooting
+        canvas.addEventListener('touchstart', handleShoot, { passive: false }); // For aiming
+        canvas.addEventListener('touchend', handleShoot, { passive: false });   // For shooting
+
+        restartButtonGameOver.addEventListener('click', () => restartGame(true));
+        restartButtonMain.addEventListener('click', () => restartGame(true));
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                restartGame(false); // Adapt sizes, don't fully reset game state
+                applyTranslations(currentLanguage); // Ensure text elements are correct after resize
+            }, 200);
+        });
+
+        // --- Fullscreen API ---
+        function openFullscreen(elem) {
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        }
+        function closeFullscreen() {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                openFullscreen(elem);
+            } else {
+                closeFullscreen();
+            }
+        }
+        fullscreenButton.addEventListener('click', toggleFullscreen);
+
+        function handleFullscreenChange() {
+            const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            if (isFs) {
+                fullscreenButton.textContent = translations[currentLanguage].exitFullscreen;
+            } else {
+                fullscreenButton.textContent = translations[currentLanguage].fullscreen;
+            }
+            // Brief timeout allows browser to settle fullscreen transition before resizing
+            setTimeout(() => restartGame(false), 100); 
+        }
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (gameOver) {
+                // Minimal redraw on game over, mainly to show final state if needed
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawGrid(); // Draw grid in its final state
+                // shooterBubble is usually null by now
+                return; 
+            }
+
+            if (isShooting && shooterBubble) {
+                shooterBubble.update();
+                checkCollisions();
+            }
+            
+            let activeBubblesExist = false;
+            let bubblesStillPopping = false;
+            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (grid[r] && grid[r][c]) {
+                        if (!grid[r][c].popping) activeBubblesExist = true; // Non-popping bubble means grid not empty
+
+                        if (grid[r][c].popping) {
+                            bubblesStillPopping = true;
+                            // grid[r][c].draw(); // Pop animation drawn within main drawGrid
+                            if (grid[r][c].popAnimation >= 1) {
+                                grid[r][c] = null; // Remove after animation
+                            }
+                        } else if (grid[r][c].isFalling) {
+                            grid[r][c].update();
+                            if (grid[r][c].y > canvas.height + grid[r][c].radius * 2) { // Remove if fallen off screen
+                                grid[r][c] = null;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check for game over if any bubble in the visible area (GRID_ROWS) reaches bottom
+            for (let c = 0; c < GRID_COLS; c++) {
+                // Check the row that defines the "bottom line" for game over
+                const checkRow = GRID_ROWS -1; 
+                if (grid[checkRow] && grid[checkRow][c] && !grid[checkRow][c].popping &&
+                    (getBubbleY(checkRow) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS*1.5) ) { 
+                     triggerGameOver("Stack reached bottom line");
+                     break;
+                }
+            }
+            
+            if (!gameOver && !bubblesStillPopping && !activeBubblesExist && !isShooting && !shooterBubble) {
+                 // Grid is empty, all animations done, not currently shooting, and no shooter bubble (it was processed)
+                 console.log("Grid empty, adding new rows.");
+                 for(let i=0; i<3; i++) addNewRow(); // Add a few rows
+                 if (!gameOver) createShooterBubble(); // Create new shooter
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawShooter();
+            drawAimLine();
+            // updateScore(); // Score is updated on match/drop or explicitly
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        
+        // --- Initial Load ---
+        loadPreferences(); // Load saved language and theme
+        restartGame(true); // Start the game with a full reset
     </script>
 </body>
-</html>
+    </html>
