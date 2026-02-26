@@ -1,1244 +1,452 @@
+ // Developer:- 𓆩Ꭰᥲʀκ𓆪ꪾ|| अंतः अस्ति प्रारंभ ||
+
 <!DOCTYPE html>
-<html lang="en"> <!-- Default lang to English, will be updated by JS if needed -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bubble Shooter Deluxe (Fullscreen)</title> <!-- Will be updated by JS -->
+    <title>Space Warfare</title>
     <style>
-        :root {
-            --bg-gradient-start: #4A5A6A;
-            --bg-gradient-end: #2C3E50;
-            --text-color: #ecf0f1;
-            --panel-bg: rgba(0,0,0,0.15);
-            --container-border: #5C6B73;
-            --container-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            --container-bg: #34495e;
-            --score-bg: rgba(0,0,0,0.25);
-            --score-text: #FFD700;
-            --button-text: white;
-            --button-shadow-color-red: #96281B;
-            --button-shadow-color-blue: #1A5276;
-            --button-shadow-color-green: #1E8449;
-            --button-shadow-color-grey: #616A6B;
-            --settings-panel-bg: rgba(30, 40, 50, 0.97);
-            --settings-content-bg: #2c3e50; /* Slightly lighter than panel bg */
-            --settings-text-color: #ecf0f1;
-            --input-bg: #34495e;
-            --input-border: #5C6B73;
-            --header-color: #e74c3c;
-            --link-color: #3498db;
-            --separator-color: #4A5A6A;
-        }
-
-        body.light-theme {
-            --bg-gradient-start: #e0eafc;
-            --bg-gradient-end: #cfdef3;
-            --text-color: #2c3e50;
-            --panel-bg: rgba(255,255,255,0.4);
-            --container-border: #a2b9bc;
-            --container-shadow: inset 0 0 8px rgba(0,0,0,0.15);
-            --container-bg: #f0f4f8;
-            --score-bg: rgba(0,0,0,0.08);
-            --score-text: #E67E22;
-            /* Button text can remain white for good contrast on colored buttons */
-            --settings-panel-bg: rgba(240, 244, 248, 0.98);
-            --settings-content-bg: #ffffff;
-            --settings-text-color: #2c3e50;
-            --input-bg: #e8f0fe;
-            --input-border: #bdc3c7;
-            --header-color: #d35400; /* Slightly different red for light theme */
-            --link-color: #2980b9;
-            --separator-color: #d0d9e0;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
-            color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        #game-wrapper {
-            padding: 10px;
-            background-color: var(--panel-bg);
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            transition: background-color 0.3s ease;
-        }
-        #game-container {
-            position: relative;
-            border: 2px solid var(--container-border);
-            box-shadow: var(--container-shadow);
-            background-color: var(--container-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            touch-action: none;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        canvas {
-            display: block;
-            touch-action: none;
-        }
-        #ui-elements {
-            margin-top: 15px;
-            text-align: center;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            width: 95%;
-            max-width: 480px; /* Increased max-width for more buttons */
-        }
-        #score-container {
-            background-color: var(--score-bg);
-            padding: 8px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            flex-grow: 1;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-        #score {
-            font-size: 1.4em; /* Adjusted for balance */
-            font-weight: bold;
-            color: var(--score-text);
-            transition: color 0.3s ease;
-        }
-        button {
-            color: var(--button-text);
-            border: none;
-            padding: 10px 15px; /* Standardized padding */
-            font-size: 0.95em;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s ease-in-out;
-            box-shadow: 0 4px 0 #00000033, 0 5px 8px rgba(0,0,0,0.2); /* Generic shadow base */
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        button:hover {
-            box-shadow: 0 2px 0 #00000033, 0 3px 5px rgba(0,0,0,0.3);
-            transform: translateY(2px);
-        }
-        button:active {
-            box-shadow: 0 0px 0 #00000033, 0 1px 2px rgba(0,0,0,0.3);
-            transform: translateY(4px);
-        }
-
-        #restart-button-main {
-             background: linear-gradient(to bottom, #e74c3c, #c0392b);
-             box-shadow: 0 4px 0 var(--button-shadow-color-red), 0 5px 8px rgba(0,0,0,0.2);
-        }
-        #restart-button-main:hover { background: linear-gradient(to bottom, #c0392b, #e74c3c); box-shadow: 0 2px 0 var(--button-shadow-color-red), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
-        #restart-button-main:active { box-shadow: 0 0px 0 var(--button-shadow-color-red), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
-
-        #fullscreen-button {
-            background: linear-gradient(to bottom, #3498db, #2980b9);
-            box-shadow: 0 4px 0 var(--button-shadow-color-blue), 0 5px 8px rgba(0,0,0,0.2);
-        }
-        #fullscreen-button:hover { background: linear-gradient(to bottom, #2980b9, #3498db); box-shadow: 0 2px 0 var(--button-shadow-color-blue), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
-        #fullscreen-button:active { box-shadow: 0 0px 0 var(--button-shadow-color-blue), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
+        body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; overflow: hidden; }
+        #game-container { position: relative; width: 100%; max-width: 500px; border: 2px solid #0ff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.7); cursor: none; }
         
-        #settings-button {
-            background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
-            box-shadow: 0 4px 0 var(--button-shadow-color-grey), 0 5px 8px rgba(0,0,0,0.2);
-            padding: 10px 12px;
-            font-size: 1.1em; /* For icon */
+        /* UPDATED: Default background and new dynamic background styles */
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: auto; 
+            background-color: #020418; /* Fallback color */
+            transition: background 1s ease-in-out; /* Smooth transition for background changes */
         }
-        #settings-button:hover { background: linear-gradient(to bottom, #7f8c8d, #95a5a6); box-shadow: 0 2px 0 var(--button-shadow-color-grey), 0 3px 5px rgba(0,0,0,0.3); transform: translateY(2px); }
-        #settings-button:active { box-shadow: 0 0px 0 var(--button-shadow-color-grey), 0 1px 2px rgba(0,0,0,0.3); transform: translateY(4px); }
+        .bg-1 { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
+        .bg-2 { background: radial-gradient(ellipse at bottom, #4a1a3c 0%, #090a0f 100%); }
+        .bg-3 { background: radial-gradient(ellipse at bottom, #1b3a30 0%, #090a0f 100%); }
 
-        #game-over-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.88);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white; /* Base text color, specific elements can override */
-            z-index: 10;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        #game-over-screen h2 {
-            font-size: 2.8em;
-            margin-bottom: 15px;
-            color: var(--header-color);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            transition: color 0.3s ease;
-        }
-        #game-over-screen p {
-            font-size: 1.6em;
-            margin-bottom: 30px;
-            color: var(--text-color);
-        }
-        #game-over-screen button {
-            background: linear-gradient(to bottom, #2ecc71, #27ae60);
-            box-shadow: 0 4px 0 var(--button-shadow-color-green), 0 5px 10px rgba(0,0,0,0.3);
-            font-size: 1.1em;
-            padding: 12px 25px;
-        }
-        #game-over-screen button:hover { background: linear-gradient(to bottom, #27ae60, #2ecc71); box-shadow: 0 2px 0 var(--button-shadow-color-green), 0 3px 5px rgba(0,0,0,0.4); transform: translateY(2px); }
-        #game-over-screen button:active { box-shadow: 0 0px 0 var(--button-shadow-color-green), 0 1px 2px rgba(0,0,0,0.4); transform: translateY(4px); }
-
-        .next-bubble-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.9em;
-            color: #bdc3c7; /* Fixed color, or use a variable if theme changes it */
-        }
-        .next-bubble-area span {
-            margin-bottom: 5px;
-        }
-
-        /* Settings Panel */
-        .settings-panel-hidden {
-            display: none !important;
-        }
-        #settings-panel {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--settings-panel-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-        }
-        #settings-panel.visible {
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.3s ease, visibility 0s linear 0s;
-        }
-        .settings-content {
-            background-color: var(--settings-content-bg);
-            color: var(--settings-text-color);
-            padding: 25px 30px;
-            border-radius: 15px;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 400px; /* Slightly smaller for modal feel */
-            position: relative;
-            text-align: left;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .settings-content h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 25px;
-            color: var(--score-text); /* Consistent header color */
-            font-size: 1.8em;
-            transition: color 0.3s ease;
-        }
-        .close-button {
-            position: absolute;
-            top: 10px; right: 12px;
-            font-size: 2.2em; /* Larger for easier tap */
-            background: transparent !important; /* Override button base */
-            border: none;
-            color: var(--settings-text-color) !important; /* Override button base */
-            cursor: pointer;
-            padding: 5px;
-            line-height: 1;
-            box-shadow: none !important; /* Override button base */
-            text-shadow: none !important; /* Override button base */
-            font-weight: normal;
-        }
-        .close-button:hover {
-            color: #e74c3c !important;
-            transform: none;
-        }
-        .setting-group {
-            margin-bottom: 20px;
-        }
-        .setting-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 1.05em;
-        }
-        .setting-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--input-border);
-            background-color: var(--input-bg);
-            color: var(--settings-text-color);
-            box-sizing: border-box;
-            font-size: 1em;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-        .theme-options button {
-            margin-right: 10px;
-            padding: 8px 15px;
-            font-size: 0.9em;
-            background: linear-gradient(to bottom, #bdc3c7, #95a5a6); /* Default theme button color */
-            box-shadow: 0 3px 0 #7f8c8d, 0 4px 6px rgba(0,0,0,0.2);
-        }
-        .theme-options button:last-child { margin-right: 0; }
-        .theme-options button.active-theme {
-            background: linear-gradient(to bottom, var(--button-shadow-color-green), darken(var(--button-shadow-color-green), 10%)) !important;
-            box-shadow: 0 2px 0 darken(var(--button-shadow-color-green), 20%), inset 0 1px 2px rgba(0,0,0,0.15) !important;
-            transform: translateY(1px) !important;
-            color: white !important;
-        }
-        /* Light theme active button */
-        body.light-theme .theme-options button.active-theme {
-            background: linear-gradient(to bottom, #2ecc71, #27ae60) !important; 
-            box-shadow: 0 2px 0 #1E8449, inset 0 1px 2px rgba(0,0,0,0.15) !important;
-        }
-
-
-        .about-section {
-            margin-top: 25px;
-            border-top: 1px solid var(--separator-color);
-            padding-top: 20px;
-            transition: border-color 0.3s ease;
-        }
-        .about-section h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: var(--score-text); /* Consistent header color */
-            font-size: 1.3em;
-            transition: color 0.3s ease;
-        }
-        .about-section p {
-            font-size: 1em;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-        .about-section a {
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--link-color);
-            font-weight: bold;
-            transition: color 0.2s;
-        }
-        .about-section a:hover { color: #e67e22; }
-        .youtube-icon {
-            width: 22px;
-            height: 22px;
-            margin-right: 8px;
-        }
-
-        /* Fullscreen specific styles */
-        body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen, body:-ms-fullscreen {
-            /* Game wrapper will be flex-centered by body styles */
-        }
-        body:fullscreen #game-wrapper,
-        body:-webkit-full-screen #game-wrapper,
-        body:-moz-full-screen #game-wrapper,
-        body:-ms-fullscreen #game-wrapper {
-            width: 100%; height: 100%; 
-            padding:0; border-radius: 0; box-shadow: none;
-            /* flex properties are handled by body for centering its direct child */
-        }
-        body:fullscreen #ui-elements,
-        body:-webkit-full-screen #ui-elements,
-        body:-moz-full-screen #ui-elements,
-        body:-ms-fullscreen #ui-elements {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: auto;
-            max-width: 95%;
-            background-color: rgba(0,0,0,0.3);
-            padding: 10px 15px;
-            border-radius: 10px;
-            z-index: 5; /* Below game over screen, above canvas */
-        }
-        body:fullscreen #game-container,
-        body:-webkit-full-screen #game-container,
-        body:-moz-full-screen #game-container,
-        body:-ms-fullscreen #game-container {
-            border-radius: 0; box-shadow: none;
-            /* width & height set by JS */
-        }
+        .menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(10, 20, 40, 0.9); padding: 2rem; border-radius: 15px; text-align: center; border: 1px solid #0ff; backdrop-filter: blur(5px); width: 85%; cursor: default; z-index: 10; }
+        .menu h1 { margin-top: 0; font-size: 2rem; color: #0ff; text-shadow: 0 0 10px #0ff; }
+        .menu p { margin-bottom: 20px; color: #eee; font-size: 1.1rem; }
+        .menu button { background: linear-gradient(45deg, #0ff, #0a8a8a); border: none; color: #fff; padding: 12px 25px; margin: 10px 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; border-radius: 8px; transition: all 0.3s ease; }
+        .menu button:hover { transform: scale(1.05); box-shadow: 0 0 15px #0ff; }
+        .menu button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        #ui-container { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; font-size: clamp(16px, 4vw, 18px); font-weight: bold; text-shadow: 0 0 5px #000; z-index: 5; pointer-events: none; }
+        #ui-container span { background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 8px; }
+        #pause-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.4); border: 1px solid #0ff; color: white; font-size: 20px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 6; pointer-events: all; display: none; }
+        
+        #upgrade-shop .upgrade-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+        #upgrade-shop .upgrade-item span { text-align: left; flex-basis: 50%; }
     </style>
 </head>
 <body>
-    <div id="game-wrapper">
-        <div id="game-container">
-            <canvas id="gameCanvas"></canvas>
-            <div id="game-over-screen">
-                <h2 data-translate-key="gameOverTitle">खेल समाप्त!</h2>
-                <p id="final-score">आपका स्कोर: 0</p>
-                <button id="restart-button-gameover" data-translate-key="playAgain">फिर से खेलें</button>
-            </div>
-        </div>
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-container" style="display: none;">
+        <span id="score"></span><span id="stage-info"></span><span id="coins"></span><span id="lives"></span>
     </div>
-    <div id="ui-elements">
-        <div id="score-container">
-            <span id="score">स्कोर: 0</span>
-        </div>
-        <div class="next-bubble-area">
-            <span data-translate-key="next">अगला:</span>
-            <canvas id="nextBubbleCanvas" width="50" height="50"></canvas>
-        </div>
-        <button id="restart-button-main" data-translate-key="reset">रीसेट</button>
-        <button id="fullscreen-button" data-translate-key="fullscreen">फ़ुलस्क्रीन</button>
-        <button id="settings-button" aria-label="Open Settings">⚙️</button>
+    <button id="pause-btn">⚙️</button>
+
+    <!-- Menus -->
+    <div id="main-menu" class="menu">
+        <h1>Space Warfare</h1>
+        <button id="start-game-btn">Start Game</button>
+        <button id="upgrade-shop-btn">Upgrade Shop</button>
     </div>
-
-    <div id="settings-panel">
-        <div class="settings-content">
-            <button id="close-settings-button" class="close-button" aria-label="Close settings">&times;</button>
-            <h2 data-translate-key="settings">सेटिंग्स</h2>
-            <div class="setting-group">
-                <label for="language-select" data-translate-key="language">भाषा:</label>
-                <select id="language-select">
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी</option>
-                </select>
-            </div>
-            <div class="setting-group">
-                <label data-translate-key="theme">थीम:</label>
-                <div class="theme-options">
-                    <button id="light-theme-button" data-translate-key="light">लाइट</button>
-                    <button id="dark-theme-button" data-translate-key="dark">डार्क</button>
-                </div>
-            </div>
-            <div class="setting-group about-section">
-                <h3 data-translate-key="about">अबाउट</h3>
-                <p>Created by Movie Time With AI 🍿</p>
-                <a href="https://youtube.com/@movietimewithai?si=JVINGxUeWPJCTgAJ" target="_blank" rel="noopener noreferrer">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkYwMDAwIj48cGF0aCBkPSJNMjEuODM2IDEwLjM5Yy4yMTggMS4yMjUtMS4wMzMgMy4zNi0xLjQ5MyA0LjExNi0uNDYgMS4xMDQtMS4xMzMgMi4xMzEtMi4xMDYgMi43MzJjLTEuNDc3LjUwMi02LjIzNy41MDItNi4yMzcuNTAyczAuMDAxIDAtLjAwMSAwYy0xLjQ3OCAwLTYuMjM3IDAtNi4yMzctLjUwMmMtLjk3My0uNjAxLTEuNjQ2LTEuNjI4LTIuMTA2LTIuNzMyQzMuMTk2IDEzLjc1IDMgMTEuNjE1IDMgMTAuMzljMC0xLjIyLjE5Ni0zLjQzLjY1Ni00LjQ2QzQuMTE2IDQuODI4IDQuNzg5IDMuOCAyMS40NzUgMi42OTggMTIgMi42OTggMTIgMi42OThzNC43NiAwIDYuMjM3LjUwMmMxLjI2NS42OTIgMS44OCAyLjM1MiAyLjEwNiAyLjczMi40NiAxLjEwNC42NTYgMy4yNDQuNjU6IDQuNDY1ek05Ljg2IDE0LjA0NGw2LjAwOC0zLjA0NC02LjAwOC0zLjA0NHY2LjA5eiIvPjwvc3ZnPg==" alt="YouTube Icon" class="youtube-icon">
-                    Movie Time With AI
-                </a>
-            </div>
-        </div>
+    <div id="pause-menu" class="menu" style="display: none;">
+        <h1>Paused</h1>
+        <button id="resume-btn">Resume</button>
+        <button id="sound-toggle-btn">Sound: On</button>
+        <button id="restart-from-pause-btn">Restart</button>
     </div>
+     <div id="upgrade-shop" class="menu" style="display: none;">
+        <h1>Upgrade Shop</h1>
+        <p>Your Total Coins: <span id="shop-coins">0</span> 🪙</p>
+        <div class="upgrade-item">
+            <span>Extra Life (Lv. <span id="life-level">0</span>)</span>
+            <button id="buy-life-btn">Buy (50 🪙)</button>
+        </div>
+        <div class="upgrade-item">
+            <span>Weapon Power (Lv. <span id="power-level">0</span>)</span>
+            <button id="buy-power-btn">Buy (75 🪙)</button>
+        </div>
+        <div class="upgrade-item">
+            <span>Coin Value (Lv. <span id="coin-value-level">0</span>)</span>
+            <button id="buy-coin-value-btn">Buy (100 🪙)</button>
+        </div>
+        <button id="back-to-main-menu-btn">Back to Menu</button>
+    </div>
+    <div id="transition-menu" class="menu" style="display: none;"><h1 id="transition-title"></h1><p id="transition-text"></p></div>
+    <div id="game-over-menu" class="menu" style="display: none;">
+        <h1>Game Over!</h1>
+        <p id="final-stats"></p>
+        <button id="restart-button">Play Again</button>
+        <button id="revive-btn">Revive (1 ❤️)</button>
+    </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const nextBubbleCanvas = document.getElementById('nextBubbleCanvas');
-        const nextBubbleCtx = nextBubbleCanvas.getContext('2d');
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 500; canvas.height = 700;
 
-        const scoreDisplay = document.getElementById('score');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const finalScoreDisplay = document.getElementById('final-score');
-        const restartButtonGameOver = document.getElementById('restart-button-gameover');
-        const restartButtonMain = document.getElementById('restart-button-main');
-        const fullscreenButton = document.getElementById('fullscreen-button');
+    // --- DOM Elements ---
+    const uiContainer = document.getElementById('ui-container');
+    const scoreEl = document.getElementById('score');
+    const stageInfoEl = document.getElementById('stage-info');
+    const livesEl = document.getElementById('lives');
+    const coinsEl = document.getElementById('coins');
+    const mainMenu = document.getElementById('main-menu');
+    const transitionMenu = document.getElementById('transition-menu');
+    const transitionTitle = document.getElementById('transition-title');
+    const transitionText = document.getElementById('transition-text');
+    const gameOverMenu = document.getElementById('game-over-menu');
+    const finalStatsEl = document.getElementById('final-stats');
+    const pauseBtn = document.getElementById('pause-btn');
+    const pauseMenu = document.getElementById('pause-menu');
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    
+    // --- Audio ---
+    let isSoundOn = true;
+    // UPDATED: Added new sound for player getting hit
+    const sounds = {
+        fire: new Audio('data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YUYAAAD///////////+AgP//gID//35+f3x7e3R0c3N1dHVzdHRycnJybnFxZmZlZWVlZWVmZmZmZmFhYGBgX19fXl5eXl5dXFxcW1tbW1xcXFtbWlpaWlpaWlpaWlpaWllZWVlZWVlZWFlYWFhYWFdXV1dXV1ZWVlZWVlVUVFRUVFRUVFRUVFNTU1NTU1NTU1NTUlJSUlJSUlJSUlJSUk5OTk5OTk5OTk5OTk1NTU1NTU1NTU1NTS0tLS0tLS0tLS0tLS0pKSkpKSkpKSkpKSEhISEhISEhISEdHR0dHR0dHR0dHR0ZGRkZGRkZGRkZGRkREREQ=='),
+        enemyFire: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YRICAAAA//8/f35+fn5+fn5+fn59fX19fX19fX19fHx8fHx8fHx8e3t7e3t7e3t6enp6enp6eXl5eXl5eXh4eHh4eHh3d3d3d3d2dnZ2dnZ2dnZ1dXV1dXV0dHR0dHRzc3Nzc3NycXFx'),
+        explosion: new Audio('data:audio/wav;base64,UklGRkgBAABXQVZFZm10IBAAAAABAAEAESsAAFWsAAACABAATElTVBoAAABkYXRhQAEAAMy+w75/sKvAwb13t8e6wbu1y8C+s8S9sMC7vci9vsW/vby/wMC8wsS7vMK8wLu/v8O+wMC/v7/Av7/AwL/AwL+/wL/AwL/Av7+/wL/Av7+/wL+/v8C/v8C/v7/Av7+/wL/Av7/Av7+/wL+/v8C/v7/Av7+/wL+/v8C/v7/Ag=='),
+        powerup: new Audio('data:audio/wav;base64,UklGRlQBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YUwBAAB1dXV4eXh5eXl6enp7e3t7e3t7e3t8fHx8fHx9fX1+fn5/f39/f3+AgICAgICAgICBgYGBgYGBgYKCgoKCgoKCgoODg4ODg4ODg4SEhISEhISEhIWFhYWFhYWFhYaGhoaGhoaGhoaIiIiIiIiIiIiJiYmJiYmJiYmKioqKioqKioqLi4uLi4uLi4uMjIyMjIyMjIyNjY2NjY2NjY2Ojo6Ojo6Ojo6Pj4+Pj4+Pj4+QkJCA=='),
+        hit: new Audio('data:audio/wav;base64,UklGRjwAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YSAAAAAA//8CAP3+/fj39vX08/Lx8O/u7uns6Obe2tXSzcPCvbaqo56BfnNlQyUJAQ==')
+    };
+    Object.values(sounds).forEach(s => { s.volume = 0.2; });
+    const playSound = (sound) => { if (!isSoundOn) return; sound.cloneNode().play().catch(e => {}); };
+
+    // --- Upgrade System ---
+    const upgradeShopEl = document.getElementById('upgrade-shop');
+    let totalCoins = 0;
+    let upgrades = {
+        life: { level: 0, cost: 50, maxLevel: 5 },
+        power: { level: 0, cost: 75, maxLevel: 5 },
+        coinValue: { level: 0, cost: 100, maxLevel: 4 } 
+    };
+
+    function loadGameData() {
+        const savedCoins = localStorage.getItem('totalCoins');
+        const savedUpgrades = localStorage.getItem('upgrades');
+        if (savedCoins) totalCoins = parseInt(savedCoins, 10);
+        if (savedUpgrades) upgrades = JSON.parse(savedUpgrades);
+    }
+
+    function saveGameData() {
+        localStorage.setItem('totalCoins', totalCoins);
+        localStorage.setItem('upgrades', JSON.stringify(upgrades));
+    }
+
+    function updateShopUI() {
+        document.getElementById('shop-coins').innerText = totalCoins;
         
-        const settingsButton = document.getElementById('settings-button');
-        const settingsPanel = document.getElementById('settings-panel');
-        const closeSettingsButton = document.getElementById('close-settings-button');
-        const languageSelect = document.getElementById('language-select');
-        const lightThemeButton = document.getElementById('light-theme-button');
-        const darkThemeButton = document.getElementById('dark-theme-button');
-        const bodyElement = document.body;
+        const life = upgrades.life;
+        document.getElementById('life-level').innerText = life.level;
+        const buyLifeBtn = document.getElementById('buy-life-btn');
+        buyLifeBtn.innerText = `Buy (${life.cost} 🪙)`;
+        buyLifeBtn.disabled = totalCoins < life.cost || life.level >= life.maxLevel;
+        if(life.level >= life.maxLevel) buyLifeBtn.innerText = 'Max Level';
 
-        // --- Game Constants and Variables ---
-        const GRID_ARRAY_ROWS = 15; // Total rows in the data grid array (includes off-screen top rows)
-        let BASE_GRID_ROWS = 11;    // Design number of rows intended to be visible above shooter area
-        
-        let GRID_ROWS; // Actual number of rows that *fit* on canvas above shooter (calculated in setCanvasSize)
-        let GRID_COLS;
-        let BUBBLE_RADIUS;
-        
-        const BUBBLE_COLORS = ['#FF5252', '#448AFF', '#00C853', '#FFD600', '#AA00FF', '#FF6D00'];
-        const SHOTS_BEFORE_NEW_ROW = 5;
+        const power = upgrades.power;
+        document.getElementById('power-level').innerText = power.level;
+        const buyPowerBtn = document.getElementById('buy-power-btn');
+        buyPowerBtn.innerText = `Buy (${power.cost} 🪙)`;
+        buyPowerBtn.disabled = totalCoins < power.cost || power.level >= power.maxLevel;
+        if(power.level >= power.maxLevel) buyPowerBtn.innerText = 'Max Level';
 
-        let grid = [];
-        let shooterBubble;
-        let nextBubbleColor;
-        let score = 0;
-        let isShooting = false;
-        let gameOver = false;
-        let shotsFired = 0;
-        let aimAngle = -Math.PI / 2;
-        let animationFrameId;
+        const coinValue = upgrades.coinValue;
+        document.getElementById('coin-value-level').innerText = coinValue.level;
+        const buyCoinValueBtn = document.getElementById('buy-coin-value-btn');
+        buyCoinValueBtn.innerText = `Buy (${coinValue.cost} 🪙)`;
+        buyCoinValueBtn.disabled = totalCoins < coinValue.cost || coinValue.level >= coinValue.maxLevel;
+         if(coinValue.level >= coinValue.maxLevel) buyCoinValueBtn.innerText = 'Max Level';
+    }
 
-        // --- Translations ---
-        const translations = {
-            hi: {
-                htmlLang: "hi",
-                title: "बबल शूटर डीलक्स (फ़ुलस्क्रीन)",
-                score: "स्कोर:",
-                next: "अगला:",
-                reset: "रीसेट",
-                fullscreen: "फ़ुलस्क्रीन",
-                exitFullscreen: "बाहर निकलें",
-                gameOverTitle: "खेल समाप्त!",
-                yourScore: "आपका स्कोर:",
-                playAgain: "फिर से खेलें",
-                settings: "सेटिंग्स",
-                language: "भाषा:",
-                theme: "थीम:",
-                light: "लाइट",
-                dark: "डार्क",
-                about: "विवरण",
-                settingsButton_aria: "सेटिंग्स खोलें",
-                closeSettings_aria: "सेटिंग्स बंद करें"
-            },
-            en: {
-                htmlLang: "en",
-                title: "Bubble Shooter Deluxe (Fullscreen)",
-                score: "Score:",
-                next: "Next:",
-                reset: "Reset",
-                fullscreen: "Fullscreen",
-                exitFullscreen: "Exit Fullscreen",
-                gameOverTitle: "Game Over!",
-                yourScore: "Your Score:",
-                playAgain: "Play Again",
-                settings: "Settings",
-                language: "Language:",
-                theme: "Theme:",
-                light: "Light",
-                dark: "Dark",
-                about: "About",
-                settingsButton_aria: "Open Settings",
-                closeSettings_aria: "Close Settings"
-            }
-        };
-        let currentLanguage = 'en';
+    function buyUpgrade(type) {
+        const upgrade = upgrades[type];
+        if (totalCoins >= upgrade.cost && upgrade.level < upgrade.maxLevel) {
+            totalCoins -= upgrade.cost;
+            upgrade.level++;
+            upgrade.cost = Math.floor(upgrade.cost * 1.8);
+            saveGameData();
+            updateShopUI();
+            playSound(sounds.powerup);
+        }
+    }
 
-        function applyTranslations(lang) {
-            currentLanguage = lang;
-            document.documentElement.lang = translations[lang].htmlLang || 'en';
-            document.title = translations[lang].title;
-
-            document.querySelectorAll('[data-translate-key]').forEach(element => {
-                const key = element.getAttribute('data-translate-key');
-                if (translations[lang] && translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                } else if (translations['en'] && translations['en'][key]) { // Fallback to English
-                    element.textContent = translations['en'][key];
-                }
-            });
-
-            updateScore(); // Updates score text with current language
-            if (gameOver) { // Update game over screen text if visible
-                finalScoreDisplay.textContent = `${translations[lang].yourScore} ${score}`;
-                gameOverScreen.querySelector('h2').textContent = translations[lang].gameOverTitle;
-                restartButtonGameOver.textContent = translations[lang].playAgain;
-            }
-            
-            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-                fullscreenButton.textContent = translations[lang].exitFullscreen;
+    // --- Classes ---
+    class GameObject { constructor(x,y,w,h){this.x=x;this.y=y;this.width=w;this.height=h;} }
+    class Player extends GameObject {
+        constructor(){super(canvas.width/2-25,canvas.height-85,50,55);this.lives=3+upgrades.life.level;this.coins=0;this.score=0;this.companions=0;this.gunType='normal';this.gunLevel=1+upgrades.power.level;this.shootCooldown=0;this.magnetActive=false;this.magnetTimer=0;}
+        draw(){for(let i=0;i<this.companions;i++){ctx.fillStyle='#0ff';ctx.beginPath();ctx.arc(this.x-25+(i*(this.width+50))+this.width/2,this.y+this.height/2,8,0,Math.PI*2);ctx.fill();}const f=Math.random()*15+10;ctx.fillStyle=`rgba(255,${Math.random()*150},0,0.8)`;ctx.fillRect(this.x+this.width/2-4,this.y+this.height,8,f);ctx.fillStyle='#ccc';ctx.beginPath();ctx.moveTo(this.x+this.width/2,this.y);ctx.lineTo(this.x,this.y+this.height*0.8);ctx.quadraticCurveTo(this.x+this.width/2,this.y+this.height,this.x+this.width,this.y+this.height*0.8);ctx.closePath();ctx.fill();ctx.fillStyle=this.magnetActive?'#ff0':'#0ff';ctx.beginPath();ctx.arc(this.x+this.width/2,this.y+this.height*0.4,this.width/6,0,Math.PI*2);ctx.fill();}
+        update(){if(this.shootCooldown>0)this.shootCooldown--;else this.shoot();if(this.magnetTimer>0)this.magnetTimer--;else this.magnetActive=false;this.draw();}
+        shoot(){this.shootCooldown=10;playSound(sounds.fire);for(let i=0;i<this.companions;i++){game.projectiles.push(new Projectile(this.x-25+(i*(this.width+50))+this.width/2,this.y+this.height/2,'normal',1,0));}const s=-9,a=0.2;if(this.gunType==='laser')game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'laser',this.gunLevel,0));else if(this.gunType==='missile')game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'missile',this.gunLevel,0));else if(this.gunType==='spread'){for(let i=0;i<this.gunLevel+1;i++)game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'spread',this.gunLevel,(i-(this.gunLevel)/2)*1.5));}else if(this.gunType==='homing')game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'homing',this.gunLevel,0));else{game.projectiles.push(new Projectile(this.x+this.width/2-(5*this.gunLevel-5),this.y,'normal',this.gunLevel,0));if(this.gunLevel>1)game.projectiles.push(new Projectile(this.x+this.width/2+(5*this.gunLevel-5),this.y,'normal',this.gunLevel,0));if(this.gunLevel>2)game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'normal',this.gunLevel,a*s));if(this.gunLevel>3)game.projectiles.push(new Projectile(this.x+this.width/2,this.y,'normal',this.gunLevel,-a*s));}}
+        takeDamage(){this.lives--;if(this.lives<0)this.lives=0;this.gunLevel=Math.max(1, 1+upgrades.power.level);this.gunType='normal';this.companions=0;}
+    }
+    class Projectile extends GameObject {
+        constructor(x,y,type,level,velX){const c={'normal':{w:5,h:10,c:'#0ff',s:-9},'laser':{w:4,h:20,c:'#ff0',s:-14},'missile':{w:8,h:15,c:'#f90',s:-6},'spread':{w:5,h:10,c:'#0f0',s:-9},'homing':{w:8,h:8,c:'#f0f',s:-9},'enemy':{w:7,h:7,c:'#FF4081',s:4}};const a=c[type]||c.enemy;super(x-a.w/2,y,a.w,a.h);this.type=type;this.velocity={x:velX||0,y:a.s};this.color=a.c;}
+        update(){if(this.type==='homing'&&(game.enemies.length+game.bosses.length>0)){let cl=null,md=Infinity;game.enemies.concat(game.bosses).forEach(e=>{const d=Math.hypot(this.x-e.x,this.y-e.y);if(d<md){md=d;cl=e;}});if(cl){const an=Math.atan2(cl.y-this.y,cl.x-this.x);this.velocity.x=Math.cos(an)*9;this.velocity.y=Math.sin(an)*9;}}this.x+=this.velocity.x;this.y+=this.velocity.y;
+            ctx.fillStyle=this.color;
+            ctx.shadowColor=this.color;
+            ctx.shadowBlur = 15;
+            if (this.type === 'enemy') {
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                ctx.fill();
             } else {
-                fullscreenButton.textContent = translations[lang].fullscreen;
+                ctx.fillRect(this.x,this.y,this.width,this.height);
             }
-            settingsButton.setAttribute('aria-label', translations[lang].settingsButton_aria || translations.en.settingsButton_aria);
-            closeSettingsButton.setAttribute('aria-label', translations[lang].closeSettings_aria || translations.en.closeSettings_aria);
+            ctx.shadowBlur=0;
         }
-
-        // --- Settings Panel Logic ---
-        settingsButton.addEventListener('click', () => {
-            settingsPanel.classList.add('visible');
-            settingsPanel.classList.remove('settings-panel-hidden'); // Keep for initial state
-        });
-        closeSettingsButton.addEventListener('click', () => {
-            settingsPanel.classList.remove('visible');
-             // Delay hiding to allow fade-out transition
-            setTimeout(() => {
-                 if (!settingsPanel.classList.contains('visible')) { // Check if still meant to be hidden
-                    settingsPanel.classList.add('settings-panel-hidden');
-                 }
-            }, 300); // Match CSS transition duration
-        });
-
-        languageSelect.addEventListener('change', (event) => {
-            const selectedLang = event.target.value;
-            applyTranslations(selectedLang);
-            localStorage.setItem('bubbleShooterLang', selectedLang);
-        });
-
-        function applyTheme(theme) {
-            bodyElement.classList.remove('light-theme', 'dark-theme');
-            bodyElement.classList.add(theme + '-theme');
-            localStorage.setItem('bubbleShooterTheme', theme);
-
-            lightThemeButton.classList.toggle('active-theme', theme === 'light');
-            darkThemeButton.classList.toggle('active-theme', theme === 'dark');
-            
-            // Redraw elements that might depend on theme colors (like next bubble if its bg was themed)
-            // For this game, bubble colors are fixed. UI is handled by CSS.
-            // If shooter or next bubble had themed elements, redraw them:
-            // if(shooterBubble) shooterBubble.draw(); 
-            // drawNextBubble();
-        }
-        lightThemeButton.addEventListener('click', () => applyTheme('light'));
-        darkThemeButton.addEventListener('click', () => applyTheme('dark'));
-
-        function loadPreferences() {
-            const savedLang = localStorage.getItem('bubbleShooterLang') || 'en';
-            languageSelect.value = savedLang;
-            applyTranslations(savedLang);
-
-            const savedTheme = localStorage.getItem('bubbleShooterTheme') || 'dark';
-            applyTheme(savedTheme);
-        }
-
-        // --- Game Setup and Logic ---
-        function setCanvasSize() {
-            const gameWrapper = document.getElementById('game-wrapper');
-            const uiElements = document.getElementById('ui-elements');
-            let availableWidth, availableHeightForCanvas;
-            let isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-
-            if (isCurrentlyFullscreen) {
-                availableWidth = window.screen.width;
-                // For fullscreen, UI is an overlay, so canvas can use more height.
-                availableHeightForCanvas = window.screen.height - (uiElements.offsetHeight + 30); // 30 for margin around UI
-            } else {
-                availableWidth = window.innerWidth;
-                // Subtract UI height and wrapper's own padding/margins from window height
-                const wrapperVerticalPadding = (parseInt(getComputedStyle(gameWrapper).paddingTop) || 0) + (parseInt(getComputedStyle(gameWrapper).paddingBottom) || 0);
-                availableHeightForCanvas = window.innerHeight - uiElements.offsetHeight - wrapperVerticalPadding - 40; // Extra 40 for general margins
-            }
-            availableHeightForCanvas = Math.max(250, availableHeightForCanvas); // Ensure a minimum workable height
-
-            if (availableWidth < 450) { GRID_COLS = 8; }
-            else if (availableWidth < 768) { GRID_COLS = 9; }
-            else if (availableWidth < 1024) { GRID_COLS = 10; }
-            else { GRID_COLS = 11; }
-            
-            // Calculate bubble radius based on available width and number of columns
-            // Allow for slight gaps between bubbles by not using full (GRID_COLS * 2)
-            BUBBLE_RADIUS = Math.floor(availableWidth / (GRID_COLS * 2 * 1.08)); // 1.08 factor for spacing
-            BUBBLE_RADIUS = Math.max(10, Math.min(BUBBLE_RADIUS, 28)); // Clamp radius (10px min, 28px max)
-
-            canvas.width = GRID_COLS * BUBBLE_RADIUS * 2;
-            
-            let idealCanvasHeight = (BASE_GRID_ROWS + 1.5) * BUBBLE_RADIUS * 1.75; // 1.75 for hexagonal packing (sqrt(3))
-            canvas.height = Math.min(idealCanvasHeight, availableHeightForCanvas);
-            // Ensure minimum height for a few rows
-            canvas.height = Math.max(canvas.height, BUBBLE_RADIUS * 1.75 * 5); // Min ~4 rows + shooter
-
-            GRID_ROWS = Math.max(4, Math.floor((canvas.height / (BUBBLE_RADIUS * 1.75)) - 1.5)); // Recalculate actual fit rows
-            GRID_ROWS = Math.min(GRID_ROWS, GRID_ARRAY_ROWS - 1); // Cap by array size
-
-            const gameContainer = document.getElementById('game-container');
-            gameContainer.style.width = canvas.width + 'px';
-            gameContainer.style.height = canvas.height + 'px';
-
-            nextBubbleCanvas.width = BUBBLE_RADIUS * 2.3; // Adjust size for next bubble preview
-            nextBubbleCanvas.height = BUBBLE_RADIUS * 2.3;
-
-            if (shooterBubble) {
-                shooterBubble.x = canvas.width / 2;
-                shooterBubble.y = canvas.height - BUBBLE_RADIUS * 1.5;
-                shooterBubble.radius = BUBBLE_RADIUS;
-            }
-            drawNextBubble();
-        }
-
-        class Bubble {
-            constructor(x, y, radius, color, dx = 0, dy = 0, row = -1, col = -1) {
-                this.x = x; this.y = y; this.radius = radius; this.color = color;
-                this.dx = dx; this.dy = dy; this.row = row; this.col = col;
-                this.isFalling = false; this.popping = false; this.popAnimation = 0;
-            }
-            draw(context = ctx) {
-                if (this.popping && this.popAnimation > 1) return;
-                context.beginPath();
-                const gradient = context.createRadialGradient(
-                    this.x - this.radius * 0.25, this.y - this.radius * 0.35, this.radius * 0.1,
-                    this.x, this.y, this.radius
-                );
-                gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
-                gradient.addColorStop(0.6, this.color);
-                gradient.addColorStop(1, this.color);
-                context.fillStyle = gradient;
-                
-                let currentRadius = this.radius;
-                if (this.popping) {
-                    currentRadius = this.radius * (1 - this.popAnimation * 0.8); // Pop shrink effect
-                    this.popAnimation += 0.12; // Pop animation speed
-                }
-                context.arc(this.x, this.y, Math.max(0, currentRadius * 0.95), 0, Math.PI * 2);
-                context.fill();
-
-                if (!this.popping || currentRadius > this.radius * 0.2) { // Only draw highlight if not too small
-                    context.beginPath();
-                    context.arc( this.x - this.radius * 0.3, this.y - this.radius * 0.4, this.radius * 0.12, 0, Math.PI * 2);
-                    context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    context.fill();
-                }
-                context.closePath();
-            }
-            update() {
-                if (this.isFalling) { this.dy += 0.6; this.y += this.dy; } 
-                else if (!this.popping) { this.x += this.dx; this.y += this.dy; }
-            }
-        }
-
-        function getRandomColor() {
-            const activeColors = new Set();
-            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if (grid[r] && grid[r][c] && !grid[r][c].popping) activeColors.add(grid[r][c].color);
-                }
-            }
-            if (activeColors.size > 0) {
-                const colorsArray = Array.from(activeColors);
-                return colorsArray[Math.floor(Math.random() * colorsArray.length)];
-            }
-            return BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
-        }
-
-        function initGrid(fullReset = true) {
-            if (fullReset) {
-                grid = [];
-                for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                    grid[r] = new Array(GRID_COLS).fill(null);
-                    if (r < 5) { 
-                        for (let c = 0; c < GRID_COLS; c++) {
-                            grid[r][c] = new Bubble(getBubbleX(c, r), getBubbleY(r), BUBBLE_RADIUS, BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)], 0, 0, r, c);
-                        }
-                    }
-                }
-            } else { // Resize: update positions and radii of existing bubbles
-                for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                    for (let c = 0; c < GRID_COLS; c++) {
-                        if (grid[r] && grid[r][c]) {
-                            grid[r][c].x = getBubbleX(c,r);
-                            grid[r][c].y = getBubbleY(r);
-                            grid[r][c].radius = BUBBLE_RADIUS;
-                        }
-                    }
-                }
-            }
-        }
-        
-        function getBubbleX(col, row) { return col * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS + ((row % 2 === 0) ? 0 : BUBBLE_RADIUS); }
-        function getBubbleY(row) { return row * BUBBLE_RADIUS * 1.75 + BUBBLE_RADIUS; } // 1.75 ~ sqrt(3) for hex
-
-        function createShooterBubble() {
-            const x = canvas.width / 2;
-            const y = canvas.height - BUBBLE_RADIUS * 1.5;
-            if (!nextBubbleColor) nextBubbleColor = getRandomColor();
-            shooterBubble = new Bubble(x, y, BUBBLE_RADIUS, nextBubbleColor);
-            nextBubbleColor = getRandomColor();
-            drawNextBubble();
-        }
-
-        function drawNextBubble() {
-            nextBubbleCtx.clearRect(0,0, nextBubbleCanvas.width, nextBubbleCanvas.height);
-            if (nextBubbleColor) {
-                const previewRadius = Math.min(BUBBLE_RADIUS, nextBubbleCanvas.width / 2.5); // Ensure it fits
-                const tempBubble = new Bubble(nextBubbleCanvas.width / 2, nextBubbleCanvas.height / 2, previewRadius, nextBubbleColor);
-                tempBubble.draw(nextBubbleCtx);
-            }
-        }
-        
-        function drawGrid() {
-            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if (grid[r] && grid[r][c] && grid[r][c].y < canvas.height + BUBBLE_RADIUS * 2) { // Draw if near/on screen
-                        grid[r][c].draw();
-                    }
-                }
-            }
-        }
-        
-        function drawShooter() { if (shooterBubble) shooterBubble.draw(); }
-
-        function drawAimLine() {
-            if (gameOver || isShooting || !shooterBubble) return;
+    }
+    class Enemy extends GameObject {
+        constructor(c){super(c.x,c.y,c.size,c.size);this.type=c.type;this.hp=c.hp;this.maxHp=c.hp;this.velocity=c.velocity;this.shootCooldown=Math.random()*100+(150 / game.stage);}
+        draw() {
+            const colors = {'fast': '#ff5555', 'tank': '#55aaff', 'standard': '#99ff99'};
+            ctx.fillStyle = colors[this.type] || '#99ff99';
             ctx.beginPath();
-            ctx.moveTo(shooterBubble.x, shooterBubble.y);
-            const lineLength = canvas.height * 0.8; 
-            const endX = shooterBubble.x + lineLength * Math.cos(aimAngle);
-            const endY = shooterBubble.y + lineLength * Math.sin(aimAngle);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = 'rgba(236, 240, 241, 0.3)'; // Lighter aim line
-            ctx.lineWidth = Math.max(2, BUBBLE_RADIUS * 0.1);
-            ctx.setLineDash([BUBBLE_RADIUS*0.25, BUBBLE_RADIUS*0.25]);
-            ctx.stroke();
-            ctx.setLineDash([]); 
+            ctx.moveTo(this.x + this.width / 2, this.y);
+            ctx.lineTo(this.x + this.width, this.y + this.height * 0.8);
+            ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+            ctx.lineTo(this.x + this.width * 0.3, this.y + this.height);
+            ctx.lineTo(this.x, this.y + this.height * 0.8);
             ctx.closePath();
+            ctx.fill();
+            if(this.hp < this.maxHp){ctx.fillStyle='red';ctx.fillRect(this.x,this.y-7,this.width,4);ctx.fillStyle='lime';ctx.fillRect(this.x,this.y-7,this.width*(this.hp/this.maxHp),4);}
         }
-
-        function getGridCoordinates(pixelX, pixelY) { // For snapping
-            const approxRow = (pixelY - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 1.75);
-            const row = Math.round(approxRow);
-            let approxCol;
-            if (row % 2 === 0) { approxCol = (pixelX - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 2); }
-            else { approxCol = (pixelX - BUBBLE_RADIUS * 2) / (BUBBLE_RADIUS * 2); }
-            const col = Math.round(approxCol);
-            return { 
-                row: Math.max(0, Math.min(GRID_ARRAY_ROWS - 1, row)), 
-                col: Math.max(0, Math.min(GRID_COLS - 1, col)) 
-            };
+        update(){this.x+=this.velocity.x;this.y+=this.velocity.y;if(this.shootCooldown--<=0){this.shoot();}if(this.x<=0||this.x+this.width>=canvas.width)this.velocity.x*=-1;this.draw();}
+        shoot(){if (game.state !== 'playing') return; this.shootCooldown=Math.random()*100+(150 / game.stage); game.enemyProjectiles.push(new Projectile(this.x+this.width/2,this.y+this.height,'enemy',1,0)); playSound(sounds.enemyFire);}
+        takeDamage(){this.hp--;return this.hp<=0;}
+    }
+    class Boss extends Enemy {
+        constructor(c){super(c);this.patterns=c.patterns;this.patternIndex=0;this.patternTimer=this.patterns[0].duration;}
+        draw(){
+            ctx.fillStyle = '#4a4a6a';
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.width * 0.5, this.y); 
+            ctx.lineTo(this.x + this.width, this.y + this.height * 0.4); 
+            ctx.lineTo(this.x + this.width * 0.8, this.y + this.height); 
+            ctx.lineTo(this.x + this.width * 0.2, this.y + this.height); 
+            ctx.lineTo(this.x, this.y + this.height * 0.4); 
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2, this.y + this.height * 0.3, this.width * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle='red';ctx.fillRect(50,20,canvas.width-100,20);ctx.fillStyle='lime';ctx.fillRect(50,20,(canvas.width-100)*(this.hp/this.maxHp),20);
         }
+        update(){if(this.patternTimer>0)this.patternTimer--;else{this.patternIndex=(this.patternIndex+1)%this.patterns.length;this.patternTimer=this.patterns[this.patternIndex].duration;}let p=this.patterns[this.patternIndex];this.x+=p.vx;this.y+=p.vy;if(this.x<=0||this.x+this.width>=canvas.width)p.vx*=-1;if(this.y > 150) p.vy = 0; if(this.shootCooldown--<=0)this.shoot();this.draw();}
+        shoot(){if (game.state !== 'playing') return; const p=this.patterns[this.patternIndex];this.shootCooldown=p.fireRate; playSound(sounds.enemyFire); if(p.attack.type==='spread'){const angleStep=Math.PI*2/p.attack.count;for(let i=0;i<p.attack.count;i++)game.enemyProjectiles.push(new Projectile(this.x+this.width/2,this.y+this.height/2,'enemy',1,Math.cos(i*angleStep)*3,Math.sin(i*angleStep)*3));}else{game.enemyProjectiles.push(new Projectile(this.x+this.width*0.2,this.y+this.height,'enemy',1,0));game.enemyProjectiles.push(new Projectile(this.x+this.width*0.8,this.y+this.height,'enemy',1,0));}}
+    }
+    class Loot extends GameObject {
+        constructor(x,y,type){super(x,y,25,25);this.type=type;this.speed=2;}
+        draw(){let e='❔';if(this.type==='coin')e='🪙';else if(this.type==='power_cell')e='🌟';else if(this.type==='magnet')e='🧲';else if(this.type==='drone')e='🤖';else if(this.type.startsWith('gun_'))e={'gun_laser':'🔥','gun_missile':'💣','gun_spread':'⚡','gun_homing':'🚀'}[this.type];ctx.font=`${this.width}px Arial`;ctx.fillText(e,this.x,this.y);}
+        update(){if(game.player && game.player.magnetActive){const a=Math.atan2(game.player.y-this.y,game.player.x+game.player.width/2-this.x);this.x+=Math.cos(a)*6;this.y+=Math.sin(a)*6;}else{this.y+=this.speed;}this.draw();}
+    }
+    class Star extends GameObject {
+        constructor(){super(Math.random()*canvas.width,Math.random()*canvas.height,Math.random()*2,0);this.velocity=Math.random()*0.5+0.2;}
+        draw(){ctx.fillStyle='white';ctx.beginPath();ctx.arc(this.x,this.y,this.width,0,Math.PI*2);ctx.fill();}
+        update(){this.y+=this.velocity;if(this.y>canvas.height){this.y=-this.width;this.x=Math.random()*canvas.width;}this.draw();}
+    }
+    
+    // --- Game State & Logic ---
+    let game = { state: 'menu', stars: [] };
+    for(let i=0;i<100;i++)game.stars.push(new Star());
+    
+    function init() {
+        game = {
+            ...game,
+            player: new Player(), projectiles: [], enemies: [], bosses: [], lootItems: [], enemyProjectiles: [],
+            stage: 1,
+            enemiesToSpawnThisStage: 0,
+            spawnTimer: 0,
+            hasRevived: false
+        };
+        setupStage();
+    }
+    
+    function setupStage() {
+        const stage = game.stage;
 
-        function snapToGrid(bubble) {
-            let minDistance = Infinity;
-            let snapPos = null;
-            const { row: hitRow, col: hitCol } = getGridCoordinates(bubble.x, bubble.y);
+        // UPDATED: Dynamic background logic
+        const numBackgrounds = 3;
+        const bgIndex = ((stage - 1) % numBackgrounds) + 1;
+        canvas.classList.remove('bg-1', 'bg-2', 'bg-3');
+        canvas.classList.add(`bg-${bgIndex}`);
 
-            for (let r_offset = -2; r_offset <= 2; r_offset++) {
-                for (let c_offset = -2; c_offset <= 2; c_offset++) {
-                    const r = hitRow + r_offset;
-                    const c = hitCol + c_offset;
+        if (stage % 4 === 0) { // BOSS STAGE
+            game.enemiesToSpawnThisStage = 0;
+            const bossHp = 100 + (stage * 25);
+            const bossSize = 100 + (stage * 5);
+            game.bosses.push(new Boss({x:canvas.width/2 - bossSize/2, y:-bossSize, size:bossSize, hp:bossHp, patterns:[
+                {duration:200,vx:1,vy:0.5,fireRate:20,attack:{type:'barrage'}},
+                {duration:150,vx:0,vy:0,fireRate:40,attack:{type:'spread',count:8 + Math.floor(stage/4)}}
+            ]}));
+        } else { // REGULAR STAGE
+            game.enemiesToSpawnThisStage = 15 + stage * 7; 
+            game.spawnTimer = 100;
+        }
+        updateUI();
+    }
 
-                    if (r >= 0 && r < GRID_ARRAY_ROWS && c >= 0 && c < GRID_COLS) {
-                        if (!grid[r] || !grid[r][c]) { // If cell is empty
-                            const targetX = getBubbleX(c, r);
-                            const targetY = getBubbleY(r);
-                            // Ensure snap target is not too high above visible area or too low
-                            if (targetY < -BUBBLE_RADIUS || targetY > canvas.height - BUBBLE_RADIUS * 0.5) continue;
+    function spawnEnemy() {
+        if (game.enemiesToSpawnThisStage <= 0) return;
+        
+        game.spawnTimer --;
+        if (game.spawnTimer <= 0) {
+            game.enemiesToSpawnThisStage--;
+            game.spawnTimer = Math.max(20, 100 - game.stage * 5);
 
-                            const dist = Math.hypot(bubble.x - targetX, bubble.y - targetY);
-
-                            if (dist < minDistance && dist < BUBBLE_RADIUS * 2.5) { // Snap radius
-                                let canSnapHere = (r === 0); // Can always snap to top row if empty
-                                if (!canSnapHere) {
-                                    const neighbors = getHexNeighbors(r, c);
-                                    for (const n of neighbors) {
-                                        if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping) {
-                                            canSnapHere = true; break;
-                                        }
-                                    }
-                                }
-                                if (canSnapHere) {
-                                    minDistance = dist;
-                                    snapPos = { row: r, col: c, x: targetX, y: targetY };
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            const stage = game.stage;
+            let t='standard', h=stage, v={x:Math.random() * 2 - 1,y:1};
+            if(Math.random()<0.3 + stage * 0.02){ t='fast'; v.y=1.5; h=Math.ceil(stage/2); }
+            else if(Math.random()<0.15 + stage * 0.01){ t='tank'; h=stage*2; }
             
-            // Fallback if no ideal snap pos found (e.g. shooting into wide empty space)
-            if (!snapPos) {
-                const r = Math.max(0, Math.min(GRID_ARRAY_ROWS - 1, hitRow));
-                let c = Math.max(0, Math.min(GRID_COLS - 1, hitCol));
-                // Ensure column is valid for the row's offset
-                if (r % 2 !== 0 && c >= GRID_COLS -1 && getBubbleX(c,r) > canvas.width - BUBBLE_RADIUS) c = GRID_COLS -2;
+            game.enemies.push(new Enemy({x:Math.random()*(canvas.width-40)+20,y:-50,size:35,type:t,hp:h,velocity:v}));
+        }
+    }
 
-
-                if(!grid[r] || !grid[r][c]) { // If calculated impact point is empty
-                    snapPos = { row: r, col: c, x: getBubbleX(c,r), y: getBubbleY(r) };
-                } else { // Try adjacent empty cells
-                    const neighbors = getHexNeighbors(r,c);
-                    for (const n of neighbors) {
-                        if (n.row >= 0 && n.row < GRID_ARRAY_ROWS && n.col >= 0 && n.col < GRID_COLS && 
-                            (!grid[n.row] || !grid[n.row][n.col])) {
-                            snapPos = { row: n.row, col: n.col, x: getBubbleX(n.col, n.row), y: getBubbleY(n.row) };
-                            break;
-                        }
-                    }
-                    if (!snapPos) { // Ultimate fallback: just use calculated, even if occupied (should be rare)
-                         snapPos = { row: r, col: c, x: getBubbleX(c,r), y: getBubbleY(r) };
-                    }
-                }
+    function spawnLoot(x,y){const r=Math.random();let t='coin';if(r<0.02)t='drone';else if(r<0.04)t='gun_homing';else if(r<0.06)t='gun_missile';else if(r<0.08)t='gun_laser';else if(r<0.10)t='gun_spread';else if(r<0.20)t='power_cell';else if(r<0.25)t='magnet';else if(r>0.50)t='coin';game.lootItems.push(new Loot(x,y,t));}
+    
+    function updateUI(){if(!game.player) return; scoreEl.innerText=`Score:${game.player.score}`;stageInfoEl.innerText=`Stage: ${game.stage}`;coinsEl.innerText=`🪙 ${game.player.coins}`;livesEl.innerHTML=`Lives:${'❤️'.repeat(game.player.lives)}`;}
+    
+    function handleCollisions(){
+        if (!game.player) return;
+        for(let i=game.projectiles.length-1;i>=0;i--){const p=game.projectiles[i];for(let j=game.enemies.length-1;j>=0;j--){const e=game.enemies[j];if(isColliding(p,e)){game.projectiles.splice(i,1);if(e.takeDamage()){playSound(sounds.explosion);spawnLoot(e.x,e.y);game.player.score+=100*game.stage;game.enemies.splice(j,1);updateUI();}break;}}}
+        for(let i=game.projectiles.length-1;i>=0;i--){const p=game.projectiles[i];for(let j=game.bosses.length-1;j>=0;j--){const b=game.bosses[j];if(isColliding(p,b)){game.projectiles.splice(i,1);if(b.takeDamage()){playSound(sounds.explosion);for(let k=0; k<10; k++) spawnLoot(b.x + Math.random()*b.width, b.y + Math.random()*b.height);game.player.score+=1000*game.stage;game.bosses.splice(j,1);updateUI();}break;}}}
+        // UPDATED: Player now plays 'hit' sound on damage, not explosion.
+        for(let i=game.enemyProjectiles.length-1;i>=0;i--)if(isColliding(game.enemyProjectiles[i],game.player)){game.enemyProjectiles.splice(i,1);game.player.takeDamage();playSound(sounds.hit);updateUI();if(game.player.lives<=0)changeState('gameOver');}
+        for(let i=game.enemies.length-1;i>=0;i--)if(isColliding(game.enemies[i],game.player)){game.enemies.splice(i,1);game.player.takeDamage();playSound(sounds.hit);updateUI();if(game.player.lives<=0)changeState('gameOver');}
+        for(let i=game.lootItems.length-1;i>=0;i--){const l=game.lootItems[i];if(isColliding(l,game.player)){playSound(sounds.powerup);
+            if(l.type==='coin') game.player.coins += (1 + upgrades.coinValue.level);
+            else if(l.type==='power_cell')game.player.gunLevel=Math.min(5,game.player.gunLevel+1);
+            else if(l.type==='drone'&&game.player.companions<2)game.player.companions++;
+            else if(l.type==='magnet'){game.player.magnetActive=true;game.player.magnetTimer=300;}
+            else if(l.type.startsWith('gun_'))game.player.gunType=l.type.replace('gun_','');
+            game.lootItems.splice(i,1);updateUI();
+        }}
+    }
+    
+    let animationFrameId;
+    function gameLoop() {
+        animationFrameId = requestAnimationFrame(gameLoop);
+        // UPDATED: Clearing is now handled by the background styles, but clearRect is still a good failsafe
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        game.stars.forEach(s=>s.update());
+        
+        if (game.state === 'playing') {
+            game.player.update();
+            spawnEnemy();
+            [game.projectiles,game.enemies,game.bosses,game.lootItems,game.enemyProjectiles].forEach(arr => arr.forEach(item=>item.update()));
+            handleCollisions();
+            
+            game.projectiles=game.projectiles.filter(p=>p.y>0);
+            game.enemyProjectiles=game.enemyProjectiles.filter(p=>p.y<canvas.height);
+            game.lootItems=game.lootItems.filter(l=>l.y<canvas.height);
+            game.enemies=game.enemies.filter(e=>e.y < canvas.height);
+            
+            if (game.enemiesToSpawnThisStage === 0 && game.enemies.length === 0 && game.bosses.length === 0) {
+                changeState('stageClear');
             }
+        }
+    }
+    
+    // Developer:- @Black_Hats_Hackers
+    
+    function changeState(newState) {
+        if (game.state === 'transitioning' && newState !== 'playing') return;
+        if (game.state === newState) return;
+        
+        game.state = newState;
 
+        const allMenus = [mainMenu, transitionMenu, gameOverMenu, pauseMenu, upgradeShopEl];
+        allMenus.forEach(menu => menu.style.display = 'none');
+        uiContainer.style.display = 'none';
+        pauseBtn.style.display = 'none';
 
-            if (snapPos) {
-                bubble.row = snapPos.row; bubble.col = snapPos.col;
-                bubble.x = snapPos.x; bubble.y = snapPos.y;
-
-                if (bubble.row >= 0 && bubble.row < GRID_ARRAY_ROWS && bubble.col >=0 && bubble.col < GRID_COLS) {
-                    if(!grid[snapPos.row]) grid[snapPos.row] = new Array(GRID_COLS).fill(null);
-                    grid[snapPos.row][snapPos.col] = bubble;
-                } else {
-                    triggerGameOver("Bubble snapped out of bounds"); return; // Should not happen with good snapPos logic
-                }
-
-                // Game over if bubble snaps into the "too low" zone (near shooter)
-                if (bubble.row >= GRID_ROWS -1 && getBubbleY(bubble.row) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS * 2) { 
-                    triggerGameOver("Bubble landed too low"); return;
-                }
-                
-                const matchedBubbles = findMatches(snapPos.row, snapPos.col);
-                if (matchedBubbles.length >= 3) {
-                    removeBubbles(matchedBubbles);
-                    setTimeout(() => removeFloatingBubbles(), 150); // Delay for pop animation
-                    score += matchedBubbles.length * 10 + (matchedBubbles.length - 3) * 5; // Bonus for longer chains
-                } else {
-                    shotsFired++;
-                    if (shotsFired >= SHOTS_BEFORE_NEW_ROW) {
-                        addNewRow();
-                        shotsFired = 0;
-                    }
-                }
+        if (newState === 'playing') {
+            uiContainer.style.display = 'flex';
+            pauseBtn.style.display = 'block';
+        } else if (newState === 'gameOver') {
+            totalCoins += game.player.coins;
+            saveGameData();
+            gameOverMenu.style.display = 'block';
+            finalStatsEl.innerText = `Final Score: ${game.player.score} | Coins Collected: 🪙${game.player.coins}`;
+            
+            const reviveBtn = document.getElementById('revive-btn');
+            if (game.hasRevived) {
+                reviveBtn.style.display = 'none';
             } else {
-                // This case should ideally not be reached if snap logic is robust
-                triggerGameOver("Failed to snap bubble"); 
+                reviveBtn.style.display = 'inline-block';
             }
-        }
-        
-        function getHexNeighbors(row, col) {
-            const neighbors = [];
-            const evenRowDirs = [ { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, { dr: -1, dc: 0 }, { dr: -1, dc: -1 }, { dr: 1, dc: 0 }, { dr: 1, dc: -1 }];
-            const oddRowDirs =  [ { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, { dr: -1, dc: 0 }, { dr: -1, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: 1 }];
-            const dirs = (row % 2 === 0) ? evenRowDirs : oddRowDirs;
-            for (const dir of dirs) {
-                const nr = row + dir.dr; const nc = col + dir.dc;
-                if (nr >= 0 && nr < GRID_ARRAY_ROWS && nc >= 0 && nc < GRID_COLS) {
-                    neighbors.push({row: nr, col: nc});
-                }
-            }
-            return neighbors;
-        }
 
-        function findMatches(startRow, startCol) {
-            if (!grid[startRow] || !grid[startRow][startCol] || grid[startRow][startCol].popping) return [];
-            const colorToMatch = grid[startRow][startCol].color;
-            const q = [{row: startRow, col: startCol}];
-            const matched = []; const visited = new Set([`${startRow}-${startCol}`]);
-            while (q.length > 0) {
-                const current = q.shift(); matched.push(current);
-                const neighbors = getHexNeighbors(current.row, current.col);
-                for (const n of neighbors) {
-                    const key = `${n.row}-${n.col}`;
-                    if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping &&
-                        grid[n.row][n.col].color === colorToMatch && !visited.has(key)) {
-                        visited.add(key); q.push(n);
-                    }
-                }
-            }
-            return matched;
-        }
-        
-        function removeBubbles(bubblesToRemove) {
-            bubblesToRemove.forEach(b => {
-                if (grid[b.row] && grid[b.row][b.col]) {
-                    grid[b.row][b.col].popping = true;
-                    grid[b.row][b.col].popAnimation = 0;
-                }
-            });
-        }
-
-        function removeFloatingBubbles() {
-            const supported = new Set(); const q = [];
-            for (let c = 0; c < GRID_COLS; c++) { // Check top row for support
-                if (grid[0] && grid[0][c] && !grid[0][c].popping) {
-                    q.push({row: 0, col: c}); supported.add(`0-${c}`);
-                }
-            }
-            while(q.length > 0) {
-                const current = q.shift();
-                const neighbors = getHexNeighbors(current.row, current.col);
-                for (const n of neighbors) {
-                    const key = `${n.row}-${n.col}`;
-                    if (grid[n.row] && grid[n.row][n.col] && !grid[n.row][n.col].popping && !supported.has(key)) {
-                        supported.add(key); q.push(n);
-                    }
-                }
-            }
-            const floating = [];
-            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if (grid[r] && grid[r][c] && !grid[r][c].popping && !supported.has(`${r}-${c}`)) {
-                        floating.push({row: r, col: c});
-                        score += 15; // Bonus for dropped bubbles
-                    }
-                }
-            }
-            if (floating.length > 0) removeBubbles(floating);
-            updateScore();
-        }
-        
-        function addNewRow() {
-            // Check if adding a new row would immediately cause game over
-            for (let c = 0; c < GRID_COLS; c++) {
-                if (grid[GRID_ROWS - 1] && grid[GRID_ROWS - 1][c] && !grid[GRID_ROWS - 1][c].popping) {
-                     triggerGameOver("New row caused stack to reach bottom"); return;
-                }
-            }
-            // Shift all bubbles down
-            for (let r = GRID_ARRAY_ROWS - 1; r > 0; r--) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if(!grid[r]) grid[r] = new Array(GRID_COLS).fill(null);
-                    grid[r][c] = grid[r-1] ? grid[r-1][c] : null;
-                    if (grid[r][c]) {
-                        grid[r][c].row = r;
-                        grid[r][c].y = getBubbleY(r);
-                        grid[r][c].x = getBubbleX(c,r); // Recalculate X due to potential stagger change
-                    }
-                }
-            }
-            // Add new row at the top
-            if(!grid[0]) grid[0] = new Array(GRID_COLS).fill(null);
-            for (let c = 0; c < GRID_COLS; c++) {
-                grid[0][c] = new Bubble(getBubbleX(c,0), getBubbleY(0), BUBBLE_RADIUS, 
-                                        BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)], 0,0,0,c);
-            }
-            // After adding, re-check for game over condition due to the new row pushing others down
-            for (let c = 0; c < GRID_COLS; c++) {
-                // Check the last visible row (GRID_ROWS - 1) and one below it for safety
-                for (let check_r = GRID_ROWS -1; check_r < GRID_ROWS +1 && check_r < GRID_ARRAY_ROWS; check_r++) {
-                    if (grid[check_r] && grid[check_r][c] && !grid[check_r][c].popping &&
-                        getBubbleY(check_r) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS * 2) {
-                        triggerGameOver("Stack reached bottom after new row"); return;
-                    }
-                }
-            }
-        }
-
-        function checkCollisions() {
-            if (!shooterBubble || gameOver) return;
-
-            // Wall bounce
-            if (shooterBubble.x - shooterBubble.radius < 0 || shooterBubble.x + shooterBubble.radius > canvas.width) {
-                shooterBubble.dx *= -1;
-                shooterBubble.x = Math.max(shooterBubble.radius, Math.min(shooterBubble.x, canvas.width - shooterBubble.radius));
-            }
-            // Top boundary collision
-            if (shooterBubble.y - shooterBubble.radius < getBubbleY(0)) { // Approximate top of grid
-                shooterBubble.y = getBubbleY(0) + shooterBubble.radius * 0.1; // Prevent going too far up
-                stopShootingAndSnap(); return;
-            }
-            // Collision with grid bubbles
-            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    const bubble = grid[r] ? grid[r][c] : null;
-                    if (bubble && !bubble.popping) {
-                        const dist = Math.hypot(shooterBubble.x - bubble.x, shooterBubble.y - bubble.y);
-                        if (dist < shooterBubble.radius + bubble.radius - (BUBBLE_RADIUS*0.2) ) { // Adjusted threshold
-                            stopShootingAndSnap(); return;
-                        }
-                    }
-                }
-            }
-        }
-        
-        function stopShootingAndSnap() {
-            isShooting = false;
-            if (!shooterBubble) return; // Could be null if game over triggered mid-shot
-            shooterBubble.dx = 0; shooterBubble.dy = 0;
-            snapToGrid(shooterBubble); // This function handles logic after snap
-            if (!gameOver) createShooterBubble();
-            else shooterBubble = null;
-        }
-
-        function updateScore() {
-            scoreDisplay.textContent = `${translations[currentLanguage].score} ${score}`;
-        }
-
-        function triggerGameOver(reason = "Unknown") {
-            if (gameOver) return;
-            console.log("Game Over triggered. Reason:", reason);
-            gameOver = true;
-            isShooting = false; 
-            shooterBubble = null; // Remove shooter bubble
-            finalScoreDisplay.textContent = `${translations[currentLanguage].yourScore} ${score}`;
-            gameOverScreen.querySelector('h2').textContent = translations[currentLanguage].gameOverTitle;
-            gameOverScreen.querySelector('button').textContent = translations[currentLanguage].playAgain;
-            gameOverScreen.style.display = 'flex';
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        }
-
-        function restartGame(fullReset = true) {
-            if (!fullReset) { // Resize or non-gameplay state change
-                setCanvasSize();
-                initGrid(false); // Update existing grid elements' sizes/positions
-                if(!shooterBubble && !gameOver) createShooterBubble();
-                // applyTranslations(currentLanguage); // Already handled by resize/fullscreenchange typically
-                return;
-            }
+        } else if (newState === 'stageClear') {
+            game.state = 'transitioning';
+            let title = `Stage ${game.stage} Complete!`;
+            let text = (game.stage + 1) % 4 === 0 ? 'A Boss is approaching...' : 'Get ready for the next stage...';
             
-            score = 0; shotsFired = 0;
-            gameOver = false; isShooting = false;
-            gameOverScreen.style.display = 'none';
+            transitionTitle.innerText = title;
+            transitionText.innerText = text;
+            transitionMenu.style.display = 'block';
             
-            setCanvasSize(); 
-            initGrid(true); // Full grid re-initialization
-            nextBubbleColor = getRandomColor();
-            createShooterBubble(); 
-            
-            updateScore(); // Update score display with initial score and language
-            // applyTranslations(currentLanguage); // To ensure all static text is correct (redundant if loadPrefs called)
-
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            gameLoop();
+            setTimeout(() => {
+                game.stage++;
+                setupStage();
+                changeState('playing');
+            }, 2500);
+        } else if (newState === 'paused') {
+            pauseMenu.style.display = 'block';
+        } else if (newState === 'menu') {
+            mainMenu.style.display = 'block';
+        } else if (newState === 'shop') {
+            updateShopUI();
+            upgradeShopEl.style.display = 'block';
         }
+    }
+    
+    function isColliding(r1,r2){return r1.x<r2.x+r2.width&&r1.x+r1.width>r2.x&&r1.y<r2.y+r2.height&&r1.y+r1.height>r2.y;}
+    
+    // --- Event Listeners ---
+    function handlePlayerMove(e){if(!game.player||game.state!=='playing')return;e.preventDefault();const r=canvas.getBoundingClientRect();const cX=e.touches?e.touches[0].clientX:e.clientX;game.player.x=Math.max(0,Math.min(canvas.width-game.player.width,((cX-r.left)/r.width*canvas.width)-game.player.width/2));}
+    canvas.addEventListener('mousemove',handlePlayerMove);canvas.addEventListener('touchmove',handlePlayerMove,{passive:false});canvas.addEventListener('touchstart',handlePlayerMove,{passive:false});
+    
+    document.getElementById('start-game-btn').addEventListener('click',()=>{
+        init(); 
+        changeState('playing');
+    });
+    document.getElementById('restart-button').addEventListener('click',()=>{changeState('menu');});
+    
+    pauseBtn.addEventListener('click', () => { if(game.state === 'playing') changeState('paused'); });
+    document.getElementById('resume-btn').addEventListener('click', () => { if(game.state === 'paused') changeState('playing'); });
+    document.getElementById('restart-from-pause-btn').addEventListener('click', () => { changeState('menu'); });
+    soundToggleBtn.addEventListener('click', () => {
+        isSoundOn = !isSoundOn;
+        soundToggleBtn.innerText = isSoundOn ? 'Sound: On' : 'Sound: Off';
+    });
+    
+    document.getElementById('upgrade-shop-btn').addEventListener('click', () => changeState('shop'));
+    document.getElementById('back-to-main-menu-btn').addEventListener('click', () => changeState('menu'));
+    document.getElementById('buy-life-btn').addEventListener('click', () => buyUpgrade('life'));
+    document.getElementById('buy-power-btn').addEventListener('click', () => buyUpgrade('power'));
+    document.getElementById('buy-coin-value-btn').addEventListener('click', () => buyUpgrade('coinValue'));
 
-        function handleAim(event) {
-            if (gameOver || isShooting || !shooterBubble) return;
-            const rect = canvas.getBoundingClientRect();
-            let clientX, clientY;
-            if (event.touches) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; }
-            else { clientX = event.clientX; clientY = event.clientY; }
-            
-            const scaleX = canvas.width / rect.width;    // Relationship bitmap vs. element for X
-            const scaleY = canvas.height / rect.height;  // Relationship bitmap vs. element for Y
-
-            const canvasX = (clientX - rect.left) * scaleX;
-            const canvasY = (clientY - rect.top) * scaleY;
-
-            const dx = canvasX - shooterBubble.x;
-            const dy = canvasY - shooterBubble.y;
-            aimAngle = Math.atan2(dy, dx);
-            // Clamp aim angle to prevent shooting too horizontally or downwards
-            const minAngle = -Math.PI * 0.95; const maxAngle = -Math.PI * 0.05; 
-            aimAngle = Math.max(minAngle, Math.min(maxAngle, aimAngle));
+    document.getElementById('revive-btn').addEventListener('click', () => {
+        if (game.state === 'gameOver' && !game.hasRevived) {
+            game.hasRevived = true;
+            game.player.lives = 1;
+            game.enemyProjectiles = [];
+            playSound(sounds.powerup);
+            updateUI();
+            changeState('playing');
         }
+    });
 
-        function handleShoot(event) {
-            if (gameOver || isShooting || !shooterBubble) return;
-            // Prevent default for touch events to avoid issues like double tap zoom.
-            if (event.type === 'touchend' || event.type === 'touchstart' || event.type === 'touchmove') event.preventDefault();
-            
-            // On mousedown/touchstart, just aim. Shooting happens on click/touchend.
-            if (event.type === 'mousedown' || event.type === 'touchstart') { 
-                handleAim(event); // Update aim on initial press
-                return; 
-            }
-            // Only shoot on 'click' or 'touchend'
-            if (event.type !== 'click' && event.type !== 'touchend') return;
-
-            isShooting = true;
-            const speed = BUBBLE_RADIUS * 0.65; // Adjusted speed
-            shooterBubble.dx = Math.cos(aimAngle) * speed;
-            shooterBubble.dy = Math.sin(aimAngle) * speed;
-        }
-        
-        canvas.addEventListener('mousemove', handleAim);
-        canvas.addEventListener('touchmove', handleAim, { passive: false });
-        canvas.addEventListener('mousedown', handleShoot); // For aiming
-        canvas.addEventListener('click', handleShoot);     // For shooting
-        canvas.addEventListener('touchstart', handleShoot, { passive: false }); // For aiming
-        canvas.addEventListener('touchend', handleShoot, { passive: false });   // For shooting
-
-        restartButtonGameOver.addEventListener('click', () => restartGame(true));
-        restartButtonMain.addEventListener('click', () => restartGame(true));
-        
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                restartGame(false); // Adapt sizes, don't fully reset game state
-                applyTranslations(currentLanguage); // Ensure text elements are correct after resize
-            }, 200);
-        });
-
-        // --- Fullscreen API ---
-        function openFullscreen(elem) {
-            if (elem.requestFullscreen) elem.requestFullscreen();
-            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
-            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-        }
-        function closeFullscreen() {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-            else if (document.msExitFullscreen) document.msExitFullscreen();
-        }
-        function toggleFullscreen() {
-            const elem = document.documentElement;
-            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-                openFullscreen(elem);
-            } else {
-                closeFullscreen();
-            }
-        }
-        fullscreenButton.addEventListener('click', toggleFullscreen);
-
-        function handleFullscreenChange() {
-            const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-            if (isFs) {
-                fullscreenButton.textContent = translations[currentLanguage].exitFullscreen;
-            } else {
-                fullscreenButton.textContent = translations[currentLanguage].fullscreen;
-            }
-            // Brief timeout allows browser to settle fullscreen transition before resizing
-            setTimeout(() => restartGame(false), 100); 
-        }
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-        // --- Game Loop ---
-        function gameLoop() {
-            if (gameOver) {
-                // Minimal redraw on game over, mainly to show final state if needed
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawGrid(); // Draw grid in its final state
-                // shooterBubble is usually null by now
-                return; 
-            }
-
-            if (isShooting && shooterBubble) {
-                shooterBubble.update();
-                checkCollisions();
-            }
-            
-            let activeBubblesExist = false;
-            let bubblesStillPopping = false;
-            for (let r = 0; r < GRID_ARRAY_ROWS; r++) {
-                for (let c = 0; c < GRID_COLS; c++) {
-                    if (grid[r] && grid[r][c]) {
-                        if (!grid[r][c].popping) activeBubblesExist = true; // Non-popping bubble means grid not empty
-
-                        if (grid[r][c].popping) {
-                            bubblesStillPopping = true;
-                            // grid[r][c].draw(); // Pop animation drawn within main drawGrid
-                            if (grid[r][c].popAnimation >= 1) {
-                                grid[r][c] = null; // Remove after animation
-                            }
-                        } else if (grid[r][c].isFalling) {
-                            grid[r][c].update();
-                            if (grid[r][c].y > canvas.height + grid[r][c].radius * 2) { // Remove if fallen off screen
-                                grid[r][c] = null;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Check for game over if any bubble in the visible area (GRID_ROWS) reaches bottom
-            for (let c = 0; c < GRID_COLS; c++) {
-                // Check the row that defines the "bottom line" for game over
-                const checkRow = GRID_ROWS -1; 
-                if (grid[checkRow] && grid[checkRow][c] && !grid[checkRow][c].popping &&
-                    (getBubbleY(checkRow) + BUBBLE_RADIUS > canvas.height - BUBBLE_RADIUS*1.5) ) { 
-                     triggerGameOver("Stack reached bottom line");
-                     break;
-                }
-            }
-            
-            if (!gameOver && !bubblesStillPopping && !activeBubblesExist && !isShooting && !shooterBubble) {
-                 // Grid is empty, all animations done, not currently shooting, and no shooter bubble (it was processed)
-                 console.log("Grid empty, adding new rows.");
-                 for(let i=0; i<3; i++) addNewRow(); // Add a few rows
-                 if (!gameOver) createShooterBubble(); // Create new shooter
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawGrid();
-            drawShooter();
-            drawAimLine();
-            // updateScore(); // Score is updated on match/drop or explicitly
-
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-        
-        // --- Initial Load ---
-        loadPreferences(); // Load saved language and theme
-        restartGame(true); // Start the game with a full reset
-    </script>
+    // --- Initial Load ---
+    loadGameData();
+    changeState('menu');
+    gameLoop();
+</script>
 </body>
     </html>
